@@ -1,6 +1,5 @@
 use std::{io};
 use serde::{Serialize, Deserialize};
-use mini_redis::{client, Result};
 
 #[derive(Serialize, Deserialize, Debug)]
 enum Commands {
@@ -20,8 +19,7 @@ struct User {
 }
 
 #[tokio::main]
-async fn main() -> Result<()> {
-    //let mut client = client::connect("127.0.0.1:6379").await?;
+async fn main() -> Result<(), reqwest::Error> {
     loop {
         let mut user_login = String::new();
         let mut command_args = String::new();
@@ -61,8 +59,14 @@ async fn main() -> Result<()> {
             login: user_login,
             command,
         };
-        let serialized_user = serde_json::to_string(&user).unwrap();
-        //println!("{}", serialized_user);
+        let response = reqwest::Client::new()
+            .post("127.0.0.1:8080")
+            .json(&user)
+            .send()
+            .await?
+            .json()
+            .await?;
+        println!("{:#?}", response); // response from server
     }
     Ok(())
 }
