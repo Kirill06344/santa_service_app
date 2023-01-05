@@ -13,10 +13,11 @@ mod messages;
 mod actors;
 mod models;
 mod schema;
+mod insertables;
 
 
 use lib::{get_pool, AppState, DbActor};
-use services::{get_users, add_group};
+use services::{get_users, add_group, get_groups};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -33,6 +34,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(Data::new(AppState{db: db_addr.clone()}))
             .service(add_group)
             .service(get_users)
+            .service(get_groups)
 
     })
     .bind(("127.0.0.1", 8080))?

@@ -2,13 +2,13 @@ use actix_web::{App, get, HttpResponse, HttpServer, post, Responder};
 use actix_web::web::{Json, Path, Data};
 
 use crate::{
-    messages::GetUsers,
+    messages::GetUsers, messages::GetGroups, messages::AddGroup,
     AppState, DbActor
 };
 
 use actix::Addr;
 
-#[get("/users/get_all_users")]
+#[get("/users")]
 pub async fn get_users(state: Data<AppState>) -> impl Responder {
     //Здесь получаем адрес нашего пула
     let db: Addr<DbActor> = state.as_ref().db.clone();
@@ -21,7 +21,28 @@ pub async fn get_users(state: Data<AppState>) -> impl Responder {
     }
 }
 
+#[get("/groups")]
+pub async fn get_groups(state: Data<AppState>) -> impl Responder {
+    let db: Addr<DbActor> = state.as_ref().db.clone();
+
+    match db.send(GetGroups).await {
+        Ok(Ok(info)) => HttpResponse::Ok().json(info),
+        Ok(Err(_)) => HttpResponse::NotFound().json("No groups found"),
+        _ => HttpResponse::InternalServerError().json("Unable to retrieve groups")
+    }
+}
+
 #[post("/users/{id}/add_group")]
-pub async fn add_group(path: Path<i32>, name: Json<String>) -> impl Responder {
- HttpResponse::Ok().json("sads")
+pub async fn add_group(state: Data<AppState>, path: Path<i32>, name_group: Json<String>) -> impl Responder {
+    let id: i32 = path.into_inner();
+    let db: Addr<DbActor> = state.as_ref().db.clone();
+
+    match db.send(AddGroup {
+        name: name_group.to_string(),
+        user_id: id
+    }).await {
+        Ok(Ok(info)) => HttpResponse::Ok().json(info),
+        Ok(Err(_)) => HttpResponse::NotFound().json("The group with this name already exists"),
+        _ => HttpResponse::InternalServerError().json("Unable to add group")
+    }
 }
