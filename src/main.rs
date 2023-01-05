@@ -1,22 +1,7 @@
-use std::{io};
-use serde::{Serialize, Deserialize};
-
-#[derive(Serialize, Deserialize, Debug)]
-enum Commands {
-    CreateGroup(String), // group name
-    DeleteGroup(String), // group name
-    JoinGroup(String), // group name
-    LeaveGroup(String), // group name
-    AssignAdmin(String), // user name
-    DeleteAdmin,
-    GenerateSantas(String), // group name
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-struct User {
-    login: String,
-    command: Commands,
-}
+pub mod console;
+use console::get_data;
+pub mod structures;
+use structures::{Commands, User};
 
 #[tokio::main]
 async fn main() -> Result<(), reqwest::Error> {
@@ -24,13 +9,11 @@ async fn main() -> Result<(), reqwest::Error> {
         let mut user_login = String::new();
         let mut command_args = String::new();
         println!("Enter your login:");
-        let mut current_length = io::stdin().read_line(&mut user_login).expect("Error: Input is invalid");
-        if current_length == 0 {
+        if get_data(&mut user_login).is_err() {
             break;
         }
         println!("Enter your command:");
-        current_length = io::stdin().read_line(&mut command_args).expect("Error: Input is invalid");
-        if current_length == 0 {
+        if get_data(&mut command_args).is_err() {
             break;
         }
         let command_args: Vec<_> = command_args.split(" ").collect();
@@ -60,6 +43,7 @@ async fn main() -> Result<(), reqwest::Error> {
             login: user_login,
             command,
         };
+        print!("{}",serde_json::to_string(&user).unwrap());
         let response = reqwest::Client::new()
             .post("127.0.0.1:8080")
             .json(&user)
