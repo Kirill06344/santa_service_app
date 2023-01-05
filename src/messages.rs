@@ -19,3 +19,10 @@ pub struct AddGroup {
     pub user_id: i32
 }
 
+#[derive(Message)]
+#[rtype(result = "QueryResult<String>")]
+pub struct EnterGroup {
+    pub name: String,
+    pub user_id: i32
+}
+

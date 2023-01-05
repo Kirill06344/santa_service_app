@@ -17,7 +17,7 @@ mod insertables;
 
 
 use lib::{get_pool, AppState, DbActor};
-use services::{get_users, add_group, get_groups};
+use services::{get_users, add_group, get_groups, enter_group};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -35,7 +35,7 @@ async fn main() -> std::io::Result<()> {
             .service(add_group)
             .service(get_users)
             .service(get_groups)
-
+            .service(enter_group)
     })
     .bind(("127.0.0.1", 8080))?
     .run()
