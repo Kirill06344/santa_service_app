@@ -1,5 +1,6 @@
 use std::{io};
 use serde::{Serialize, Deserialize};
+use mini_redis::{client, Result};
 
 #[derive(Serialize, Deserialize, Debug)]
 enum Commands {
@@ -17,13 +18,15 @@ struct User {
     login: String,
     command: Commands,
 }
-fn main() {
-    let mut current_length: usize = 1;
-    while current_length != 0 {
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    //let mut client = client::connect("127.0.0.1:6379").await?;
+    loop {
         let mut user_login = String::new();
         let mut command_args = String::new();
         println!("Enter your login:");
-        current_length = io::stdin().read_line(&mut user_login).expect("Error: Input is invalid");
+        let mut current_length = io::stdin().read_line(&mut user_login).expect("Error: Input is invalid");
         if current_length == 0 {
             break;
         }
@@ -61,4 +64,5 @@ fn main() {
         let serialized_user = serde_json::to_string(&user).unwrap();
         //println!("{}", serialized_user);
     }
+    Ok(())
 }
