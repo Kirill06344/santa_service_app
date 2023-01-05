@@ -34,17 +34,18 @@ async fn main() -> Result<(), reqwest::Error> {
             break;
         }
         let command_args: Vec<_> = command_args.split(" ").collect();
-        let command_name: &str = command_args[0];
+        let command_type: &str = command_args[0];
         let mut command: Option<Commands> = None;
         let mut argument_option: Option<String> = None;
-        if (command_args.len() == 1 && command_name != "deleteAdmin") || command_args.len() > 2 {
+        let amount_of_args: usize = command_args.len();
+        if (amount_of_args == 1 && command_type != "deleteAdmin") || amount_of_args > 2 {
             continue;
         }
-        if command_args.len() == 2 {
+        if amount_of_args == 2 {
             argument_option.replace(command_args[1].to_string());
         }
         let argument: String = argument_option.unwrap();
-        match command_name {
+        match command_type {
             "create" => command.replace(Commands::CreateGroup(argument)),
             "delete" => command.replace(Commands::DeleteGroup(argument)),
             "join" => command.replace(Commands::JoinGroup(argument)),
