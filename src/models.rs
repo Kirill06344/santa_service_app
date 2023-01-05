@@ -1,3 +1,6 @@
+#![allow(unused)]
+#![allow(clippy::all)]
+
 use diesel::prelude::*;
 use serde::{Serialize, Deserialize};
 
@@ -18,15 +21,10 @@ pub struct Group {
 pub struct UserToGroup {
     pub id: i32,
     pub user_id: i32,
-    pub group_id: i32
+    pub group_id: i32,
+    pub is_admin: i32
 }
 
-#[derive(Queryable, Serialize, Deserialize)]
-pub struct Admins {
-    pub id: i32,
-    pub user_id: i32,
-    pub group_id: i32
-}
 
 #[derive(Queryable, Serialize, Deserialize)]
 pub struct Santa {

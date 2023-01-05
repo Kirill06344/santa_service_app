@@ -1,14 +1,6 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
-    admins (id) {
-        id -> Int4,
-        user_id -> Int4,
-        group_id -> Int4,
-    }
-}
-
-diesel::table! {
     groups (id) {
         id -> Int4,
         name -> Varchar,
@@ -30,6 +22,7 @@ diesel::table! {
         id -> Int4,
         user_id -> Int4,
         group_id -> Int4,
+        is_admin -> Bool,
     }
 }
 
@@ -41,7 +34,6 @@ diesel::table! {
 }
 
 diesel::allow_tables_to_appear_in_same_query!(
-    admins,
     groups,
     santa,
     user_group,

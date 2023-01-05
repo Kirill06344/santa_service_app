@@ -1,24 +1,25 @@
-use actix_web::{get, HttpResponse, HttpServer, post, Responder};
-use actix_web::web::{Json, Path};
-use santa_project::establish_connection;
+use actix_web::{App, get, HttpResponse, HttpServer, post, Responder};
+use actix_web::web::{Json, Path, Data};
 
-use santa_project::actions::{find_users, add_group_with_name};
+use crate::{
+    messages::GetUsers,
+    AppState, DbActor
+};
+
+use actix::Addr;
 
 #[get("/users/get_all_users")]
-pub async fn get_users() -> impl Responder {
-    let mut conn = establish_connection();
-    match find_users(&mut conn) {
-        Ok(users) => HttpResponse::Ok().json(users),
-        Err(_) => HttpResponse::NotFound().json("Not found users")
+pub async fn get_users(state: Data<AppState>) -> impl Responder {
+    let db: Addr<DbActor> = state.as_ref().db.clone();
+
+    match db.send(GetUsers).await {
+        Ok(Ok(info)) => HttpResponse::Ok().json(info),
+        Ok(Err(_)) => HttpResponse::NotFound().json("No users found"),
+        _ => HttpResponse::InternalServerError().json("Unable to retrieve users")
     }
 }
 
 #[post("/users/{id}/add_group")]
 pub async fn add_group(path: Path<i32>, name: Json<String>) -> impl Responder {
-    let id: i32 = path.into_inner();
-    let mut conn = establish_connection();
-    match add_group_with_name(&mut conn, &name.to_string(), id) {
-        Ok(group) => HttpResponse::Ok().json(group),
-        Err(err) => HttpResponse::NotFound().json(err.to_string())
-    }
+ HttpResponse::Ok().json("sads")
 }

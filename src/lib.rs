@@ -1,17 +1,24 @@
-use diesel::pg::PgConnection;
-use diesel::prelude::*;
-use dotenvy::dotenv;
-use std::env;
+use actix::{Actor, Addr, SyncContext};
 
-pub mod models;
-pub mod schema;
-pub mod actions;
+use::diesel::{
+    PgConnection,
+    r2d2::{ConnectionManager, Pool}
+};
 
 
-pub fn establish_connection() -> PgConnection {
-    dotenv().ok();
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    PgConnection::establish(&database_url)
-        .unwrap_or_else(|_| panic!("Error connecting to {}", database_url))
+pub struct AppState {
+    pub db: Addr<DbActor>
 }
+
+pub struct DbActor(pub Pool<ConnectionManager<PgConnection>>);
+
+impl Actor for DbActor {
+    type Context = SyncContext<Self>;
+}
+
+pub fn get_pool(db_url: &str) -> Pool<ConnectionManager<PgConnection>> {
+    let manager: ConnectionManager<PgConnection> = ConnectionManager::<PgConnection>::new(db_url);
+    Pool::builder().build(manager).expect("Error building the connection")
+}
+
 
