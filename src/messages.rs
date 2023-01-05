@@ -1,6 +1,7 @@
 use crate::models::{User, Group};
 use actix::Message;
 use diesel::QueryResult;
+use serde::Deserialize;
 
 //указываем тип, что должен вернуть актер
 //тот, кто получает GetUsers -> "QueryResult<Vec<User>>"
@@ -12,14 +13,14 @@ pub struct GetUsers;
 #[rtype(result = "QueryResult<Vec<Group>>")]
 pub struct GetGroups;
 
-#[derive(Message)]
+#[derive(Message, Deserialize)]
 #[rtype(result = "QueryResult<Group>")]
 pub struct AddGroup {
     pub name: String,
     pub user_id: i32
 }
 
-#[derive(Message)]
+#[derive(Message, Deserialize)]
 #[rtype(result = "QueryResult<String>")]
 pub struct EnterGroup {
     pub name: String,
