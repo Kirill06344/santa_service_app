@@ -49,8 +49,8 @@ pub async fn add_group(state: Data<AppState>, name_group: Json<AddGroup>) -> imp
 }
 
 
-#[post("/users/enter_group")]
-pub async fn enter_group(state: Data<AppState>, name_group: Json<EnterGroup>) -> impl Responder {
+#[post("/users/join_group")]
+pub async fn join_group(state: Data<AppState>, name_group: Json<EnterGroup>) -> impl Responder {
     let db: Addr<DbActor> = state.as_ref().db.clone();
 
     match db.send(name_group.0).await {
