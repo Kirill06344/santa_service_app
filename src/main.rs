@@ -43,13 +43,13 @@ async fn main() -> Result<(), reqwest::Error> {
             login: user_login,
             command,
         };
-        print!("{}",serde_json::to_string(&user).unwrap());
+        //print!("{}",serde_json::to_string(&user).unwrap());
+        //let a: str;
         let response = reqwest::Client::new()
-            .post("127.0.0.1:8080")
-            .json(&user)
+            .get("http://127.0.0.1:8080/users")
             .send()
             .await?
-            .json()
+            .text()
             .await?;
         println!("{:#?}", response); // response from server
     }
