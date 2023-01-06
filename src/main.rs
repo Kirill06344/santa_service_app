@@ -8,15 +8,15 @@ use std::collections::HashMap;
 use reqwest::StatusCode;
 
 #[tokio::main]
-async fn do_post_request(url: &str, data: User) -> Result<(), reqwest::Error> {
-    let response: User = reqwest::Client::new()
+async fn print_command_result(url: &str, data: User) -> Result<(), reqwest::Error> {
+    let response: String = reqwest::Client::new()
         .post(url)
         .json(&data)
         .send()
         .await?
         .json()
         .await?;//Todo : do error handling
-    println!("{:?}", response);
+    println!("{}", response);
     Ok(())
 }
 
@@ -88,7 +88,7 @@ async fn main() -> Result<(), reqwest::Error> {
            
                     //2-nd bariant
                     // tokio::task::spawn_blocking(|| {
-                    //     match do_post_request(*url, current_command) {
+                    //     match print_command_result(*url, current_command) {
                     //         Ok(response) => {
                     //             println!("{:?}", response);
                     //         },
@@ -103,14 +103,11 @@ async fn main() -> Result<(), reqwest::Error> {
                 None => continue,
             }
         }
-
         println!("You have been log out of profile. Would you like to log in to your profile?[Y/N]");
         let mut change_profile: String = String::new();
         if !(get_data(&mut change_profile).is_ok() && (change_profile == "Y" || change_profile == "y")) {
             break;
         }
     }
-
-    
     Ok(())
 }
