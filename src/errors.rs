@@ -2,5 +2,7 @@ pub enum Errors {
     CantFindGroupByName,
     AccessDenied,
     NotUpdated,
-    DbConnectionError
+    DbConnectionError,
+    NotUniqueGroupName,
+    CantFindUserName
 }

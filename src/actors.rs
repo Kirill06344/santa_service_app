@@ -7,7 +7,7 @@ use actix::Handler;
 use diesel::{self, prelude::*};
 use diesel::r2d2::{ConnectionManager, PooledConnection};
 use crate::errors::Errors;
-use crate::errors::Errors::{AccessDenied, NotUpdated, CantFindGroupByName, DbConnectionError};
+use crate::errors::Errors::{AccessDenied, NotUpdated, CantFindGroupByName, DbConnectionError, NotUniqueGroupName};
 use crate::models::{User, Group, UserToGroup};
 use crate::insertables::InsertableUserGroup;
 
@@ -62,7 +62,7 @@ impl Handler<GetGroups> for DbActor {
 }
 
 impl Handler<AddGroup> for DbActor {
-    type Result = QueryResult<Group>;
+    type Result = Result<Group, Errors>;
 
     fn handle(&mut self, msg: AddGroup, ctx: &mut Self::Context) -> Self::Result {
         let mut conn = self.0.get().expect("Database is unable");
@@ -72,7 +72,7 @@ impl Handler<AddGroup> for DbActor {
             get_result::<Group>(& mut conn);
 
         if inserted_group.is_err() {
-            return inserted_group;
+            return Err(Errors::NotUniqueGroupName);
         }
 
         let dep_group = InsertableUserGroup {
@@ -87,10 +87,10 @@ impl Handler<AddGroup> for DbActor {
         if a.is_err() || a.unwrap() == 0 {
             use crate::schema::groups::dsl::id;
             diesel::delete(groups).filter(id.eq(inserted_group.as_ref().unwrap().id)).execute(& mut conn).expect("Error while deleting");
-            return Err(diesel::result::Error::NotFound);
+            return Err(Errors::NotUpdated);
         }
 
-        return inserted_group;
+        return Ok(inserted_group.unwrap());
     }
 }
 
@@ -103,31 +103,28 @@ pub fn find_group_id_by_name(conn: & mut PooledConnection<ConnectionManager<PgCo
 }
 
 impl Handler<EnterGroup> for DbActor{
-    type Result = QueryResult<String>;
+    type Result = Result<UserToGroup, Errors>;
 
     fn handle(&mut self, msg: EnterGroup, ctx: &mut Self::Context) -> Self::Result {
         let mut conn = self.0.get().expect("Database is unable");
 
         let gr_id = find_group_id_by_name(& mut conn, msg.name);
         if gr_id == -1 {
-            return Ok("Group with this name doesn't exists!".to_string());
+            return Err(Errors::CantFindGroupByName);
         }
 
         let already_in_group = user_group.filter(user_id.eq(msg.user_id)).filter(group_id.eq(gr_id)).execute(& mut conn);
 
-        if !already_in_group.is_err() && already_in_group.unwrap() == 0 {
+        return if !already_in_group.is_err() && already_in_group.unwrap() == 0 {
             let dep_group = InsertableUserGroup {
                 user_id: msg.user_id,
                 group_id: gr_id,
                 is_admin: false
             };
-
-            match diesel::insert_into(user_group).values(&dep_group).execute(& mut conn) {
-                Ok(info) => Ok("You added into group!".to_string()),
-                Err(_) => Err(diesel::result::Error::NotFound)
-            }
+            let res = diesel::insert_into(user_group).values(&dep_group).get_result::<UserToGroup>(&mut conn);
+            if !res.is_err() { Ok(res.unwrap()) } else { Err(Errors::DbConnectionError) }
         } else {
-            return Ok("You are already in this group!".to_string());
+            Err(Errors::NotUpdated)
         }
 
     }
@@ -157,8 +154,13 @@ impl Handler<MakeAdmin> for DbActor {
             return Err(AccessDenied);
         }
 
+        let future_admin_id = users.filter(login.eq(msg.admin_name)).get_result::<User>(& mut conn);
+        if future_admin_id.is_err(){
+            return Err(Errors::CantFindUserName);
+        }
+
         let a = diesel::update(user_group
-            .filter(user_id.eq(msg.future_admin_id))
+            .filter(user_id.eq(future_admin_id.unwrap().id))
             .filter(group_id.eq(gr_id)))
             .set(is_admin.eq(true))
             .get_result::<UserToGroup>(& mut conn);

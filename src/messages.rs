@@ -22,19 +22,18 @@ pub struct GetIdFromLogin {
 pub struct GetGroups;
 
 #[derive(Message, Deserialize)]
-#[rtype(result = "QueryResult<Group>")]
+#[rtype(result = "Result<Group, Errors>")]
 pub struct AddGroup {
     pub name: String,
     pub user_id: i32
 }
 
 #[derive(Message, Deserialize)]
-#[rtype(result = "QueryResult<String>")]
+#[rtype(result = "Result<UserToGroup, Errors>")]
 pub struct EnterGroup {
     pub name: String,
     pub user_id: i32
 }
-
 
 
 #[derive(Message, Deserialize)]
@@ -42,6 +41,6 @@ pub struct EnterGroup {
 pub struct MakeAdmin {
     pub group_name: String,
     pub user_id: i32,
-    pub future_admin_id: i32
+    pub admin_name: String
 }
 

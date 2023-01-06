@@ -1,6 +1,9 @@
 use actix_web::{App, get, HttpResponse, HttpServer, post, Responder};
 use actix_web::web::{Json, Path, Data};
 
+use serde::{Deserialize};
+
+
 use crate::{
     messages::GetUsers, messages::GetGroups, messages::AddGroup,
     messages::EnterGroup, messages::MakeAdmin, messages::GetIdFromLogin,
@@ -8,7 +11,7 @@ use crate::{
 };
 
 use crate::errors::Errors;
-use crate::errors::Errors::{AccessDenied, NotUpdated, CantFindGroupByName};
+use crate::errors::Errors::{AccessDenied, NotUpdated, CantFindGroupByName, NotUniqueGroupName};
 
 use actix::Addr;
 use actix::fut::err;
@@ -24,7 +27,7 @@ pub async fn get_id_from_login(state: Data<AppState>, data: Json<String>) -> imp
 
     match db.send(str_struct).await {
         Ok(Ok(info)) => HttpResponse::Ok().json(info),
-        Ok(Err(Errors)) => HttpResponse::BadRequest().json("Error in db!"),
+        Ok(Err(Errors)) => HttpResponse::InternalServerError().json("Error in db!"),
         _ => HttpResponse::InternalServerError().json("Unable to retrieve users")
     }
 }
@@ -57,25 +60,47 @@ pub async fn get_groups(state: Data<AppState>) -> impl Responder {
 
 
 #[post("/users/add_group")]
-pub async fn add_group(state: Data<AppState>, data: Json<AddGroup>) -> impl Responder {
+pub async fn add_group(state: Data<AppState>, data: Json<MakeAdmin>) -> impl Responder {
     let db: Addr<DbActor> = state.as_ref().db.clone();
 
-    match db.send(data.0).await {
+    let msg = AddGroup {
+        name: data.0.group_name,
+        user_id: data.0.user_id
+    };
+
+    match db.send(msg).await {
         Ok(Ok(info)) => HttpResponse::Ok().json(info),
-        Ok(Err(_)) => HttpResponse::BadRequest().json("The group with this name already exists"),
-        _ => HttpResponse::InternalServerError().json("Unable to add group")
+        Ok(Err(error)) => {
+            match error {
+                Errors::NotUniqueGroupName => HttpResponse::NotAcceptable().json("Group already exists!"),
+                Errors::NotUpdated => HttpResponse::NotModified().json("Unable to add in user_group table!"),
+                _ => HttpResponse::InternalServerError().json("Something went wrong!")
+            }
+        }
+        _ => HttpResponse::InternalServerError().json("Unable to connect!")
     }
 }
 
 
 #[post("/users/join_group")]
-pub async fn join_group(state: Data<AppState>, data: Json<EnterGroup>) -> impl Responder {
+pub async fn join_group(state: Data<AppState>, data: Json<MakeAdmin>) -> impl Responder {
     let db: Addr<DbActor> = state.as_ref().db.clone();
 
-    match db.send(data.0).await {
+    let msg = EnterGroup {
+        name: data.0.group_name,
+        user_id: data.0.user_id
+    };
+
+    match db.send(msg).await {
         Ok(Ok(info)) => HttpResponse::Ok().json(info),
-        Ok(Err(error)) => HttpResponse::BadRequest().json(error.to_string()),
-        _ => HttpResponse::InternalServerError().json("Unable to add group")
+        Ok(Err(error)) => {
+            match error {
+                Errors::CantFindGroupByName => HttpResponse::NotAcceptable().json("Can't find group with this name!"),
+                Errors::NotUpdated => HttpResponse::Conflict().json("You are already in group!"),
+                _ => HttpResponse::InternalServerError().json("Something went wrong!")
+            }
+        }
+        _ => HttpResponse::InternalServerError().json("Unable to connect!")
     }
 }
 
@@ -87,9 +112,10 @@ pub async fn make_admin(state: Data<AppState>, data: Json<MakeAdmin>) -> impl Re
         Ok(Ok(info)) => HttpResponse::Ok().json(info),
         Ok(Err(error)) => {
             match error {
+                Errors::CantFindUserName => HttpResponse::NotAcceptable().json("Can't find user with this name!"),
                 Errors::CantFindGroupByName => HttpResponse::NotAcceptable().json("Can't find group with this name!"),
                 Errors::AccessDenied => HttpResponse::Forbidden().json("Access denied. You are not an admin!"),
-                Errors::NotUpdated => HttpResponse::NotModified().json("This user is already admin or he doesn't in this group"),
+                Errors::NotUpdated => HttpResponse::Conflict().json("This user is already admin or he doesn't in this group"),
                 _ => HttpResponse::InternalServerError().json("Unable to make admin")
             }
         }
