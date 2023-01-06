@@ -1,4 +1,4 @@
-use crate::models::{User, Group};
+use crate::models::{User, Group, UserToGroup};
 use actix::Message;
 use diesel::QueryResult;
 use serde::Deserialize;
@@ -25,5 +25,13 @@ pub struct AddGroup {
 pub struct EnterGroup {
     pub name: String,
     pub user_id: i32
+}
+
+#[derive(Message, Deserialize)]
+#[rtype(result = "QueryResult<UserToGroup>")]
+pub struct MakeAdmin {
+    pub group_name: String,
+    pub user_id: i32,
+    pub future_admin_id: i32
 }
 

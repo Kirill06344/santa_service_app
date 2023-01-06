@@ -3,7 +3,7 @@ use actix_web::web::{Json, Path, Data};
 
 use crate::{
     messages::GetUsers, messages::GetGroups, messages::AddGroup,
-    messages::EnterGroup,
+    messages::EnterGroup, messages::MakeAdmin,
     AppState, DbActor
 };
 
@@ -38,10 +38,10 @@ pub async fn get_groups(state: Data<AppState>) -> impl Responder {
 
 
 #[post("/users/add_group")]
-pub async fn add_group(state: Data<AppState>, name_group: Json<AddGroup>) -> impl Responder {
+pub async fn add_group(state: Data<AppState>, data: Json<AddGroup>) -> impl Responder {
     let db: Addr<DbActor> = state.as_ref().db.clone();
 
-    match db.send(name_group.0).await {
+    match db.send(data.0).await {
         Ok(Ok(info)) => HttpResponse::Ok().json(info),
         Ok(Err(_)) => HttpResponse::BadRequest().json("The group with this name already exists"),
         _ => HttpResponse::InternalServerError().json("Unable to add group")
@@ -50,13 +50,24 @@ pub async fn add_group(state: Data<AppState>, name_group: Json<AddGroup>) -> imp
 
 
 #[post("/users/join_group")]
-pub async fn join_group(state: Data<AppState>, name_group: Json<EnterGroup>) -> impl Responder {
+pub async fn join_group(state: Data<AppState>, data: Json<EnterGroup>) -> impl Responder {
     let db: Addr<DbActor> = state.as_ref().db.clone();
 
-    match db.send(name_group.0).await {
+    match db.send(data.0).await {
         Ok(Ok(info)) => HttpResponse::Ok().json(info),
         Ok(Err(error)) => HttpResponse::BadRequest().json(error.to_string()),
         _ => HttpResponse::InternalServerError().json("Unable to add group")
+    }
+}
+
+#[post("/users/make_admin")]
+pub async fn make_admin(state: Data<AppState>, data: Json<MakeAdmin>) -> impl Responder {
+    let db: Addr<DbActor> = state.as_ref().db.clone();
+
+    match db.send(data.0).await {
+        Ok(Ok(info)) => HttpResponse::Ok().json(info),
+        Ok(Err(error)) => HttpResponse::Forbidden().json(error.to_string()),
+        _ => HttpResponse::InternalServerError().json("Unable to make admin")
     }
 }
 
