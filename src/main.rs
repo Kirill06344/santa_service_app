@@ -42,7 +42,7 @@ async fn main() -> Result<(), reqwest::Error> {
             login: user_login.to_string(),
         };
         let current_user_response = reqwest::Client::new()
-            .post("http://127.0.0.1:8080/userByLogin")
+            .post("http://127.0.0.1:8080/get_login_id")
             .json(&current_login)
             .send()
             .await?;
