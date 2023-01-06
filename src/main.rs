@@ -1,7 +1,7 @@
 pub mod console;
 use console::get_data;
 pub mod structures;
-use structures::{Commands, User, a};
+use structures::{Commands, User, a, zxc};
 
 #[tokio::main]
 async fn main() -> Result<(), reqwest::Error> {
@@ -48,17 +48,18 @@ async fn main() -> Result<(), reqwest::Error> {
         //print!("{}",serde_json::to_string(&user).unwrap());
         //let a: str;
         let d = a {
-            name: "nmnmnmnqqqqqqq".to_string(),
+            name: "zxcnmnqewfdds".to_string(),
             user_id: 45
         };
-        let response = reqwest::Client::new()
+        let response: zxc = reqwest::Client::new()
             .post("http://127.0.0.1:8080/users/add_group")
             .json(&d)
             .send()
             .await?
-            .text()
+            .json()
             .await?;
-        println!("{:#?}", response); // response from server
+        //println!("{:#?}", response); // response from server
+        println!("{}, {}, {}", response.id, response.name, response.closed);
     }
     Ok(())
 }
