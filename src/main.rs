@@ -14,6 +14,7 @@ mod actors;
 mod models;
 mod schema;
 mod insertables;
+mod errors;
 
 
 use lib::{get_pool, AppState, DbActor};

@@ -2,6 +2,8 @@ use crate::models::{User, Group, UserToGroup};
 use actix::Message;
 use diesel::QueryResult;
 use serde::Deserialize;
+use crate::errors::Errors;
+
 
 //указываем тип, что должен вернуть актер
 //тот, кто получает GetUsers -> "QueryResult<Vec<User>>"
@@ -27,8 +29,10 @@ pub struct EnterGroup {
     pub user_id: i32
 }
 
+
+
 #[derive(Message, Deserialize)]
-#[rtype(result = "QueryResult<UserToGroup>")]
+#[rtype(result = "Result<UserToGroup, Errors>")]
 pub struct MakeAdmin {
     pub group_name: String,
     pub user_id: i32,

@@ -6,7 +6,8 @@ use crate::messages::{GetUsers, GetGroups, AddGroup, EnterGroup, MakeAdmin};
 use actix::Handler;
 use diesel::{self, prelude::*};
 use diesel::r2d2::{ConnectionManager, PooledConnection};
-use serde::de::value::Error;
+use crate::errors::Errors;
+use crate::errors::Errors::{AccessDenied, NotUpdated, CantFindGroupByName};
 use crate::models::{User, Group, UserToGroup};
 use crate::insertables::InsertableUserGroup;
 
@@ -117,26 +118,28 @@ pub fn is_admin_in_group(conn: & mut PooledConnection<ConnectionManager<PgConnec
 
 
 impl Handler<MakeAdmin> for DbActor {
-    type Result = QueryResult<UserToGroup>;
+    type Result = Result<UserToGroup, Errors>;
 
     fn handle(&mut self, msg: MakeAdmin, ctx: &mut Self::Context) -> Self::Result {
         let mut conn = self.0.get().expect("Database is unable");
 
         let gr_id = find_group_id_by_name(& mut conn, msg.group_name);
         if gr_id == -1 {
-            return Err(diesel::result::Error::NotFound);
+            return Err(Errors::CantFindGroupByName);
         }
 
 
         if !is_admin_in_group(& mut conn, msg.user_id, gr_id) {
-            return Err(diesel::result::Error::NotFound);
+            return Err(AccessDenied);
         }
 
-        diesel::update(user_group
+        let a = diesel::update(user_group
             .filter(user_id.eq(msg.future_admin_id))
             .filter(group_id.eq(gr_id)))
             .set(is_admin.eq(true))
-            .get_result::<UserToGroup>(& mut conn)
+            .get_result::<UserToGroup>(& mut conn);
+
+        return if !a.is_err() {Ok(a.unwrap())} else {Err(Errors::NotUpdated)} ;
     }
 }
 

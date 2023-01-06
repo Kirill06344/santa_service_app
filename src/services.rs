@@ -7,8 +7,12 @@ use crate::{
     AppState, DbActor
 };
 
+use crate::errors::Errors;
+use crate::errors::Errors::{AccessDenied, NotUpdated, CantFindGroupByName};
+
 use actix::Addr;
 use actix::fut::err;
+
 
 #[get("/users")]
 pub async fn get_users(state: Data<AppState>) -> impl Responder {
@@ -66,7 +70,13 @@ pub async fn make_admin(state: Data<AppState>, data: Json<MakeAdmin>) -> impl Re
 
     match db.send(data.0).await {
         Ok(Ok(info)) => HttpResponse::Ok().json(info),
-        Ok(Err(error)) => HttpResponse::Forbidden().json(error.to_string()),
+        Ok(Err(error)) => {
+            match error {
+                Errors::CantFindGroupByName => HttpResponse::NotAcceptable().json("Can't find group with this name!"),
+                Errors::AccessDenied => HttpResponse::Forbidden().json("Access denied. You are not an admin!"),
+                Errors::NotUpdated => HttpResponse::NotModified().json("This user is already admin or he doesn't in this group")
+            }
+        }
         _ => HttpResponse::InternalServerError().json("Unable to make admin")
     }
 }
