@@ -2,6 +2,7 @@
 #![allow(clippy::all)]
 
 use diesel::prelude::*;
+use diesel::sql_types::{Bool, Integer};
 use serde::{Serialize, Deserialize};
 
 #[derive(Queryable, Serialize, Deserialize)]
@@ -22,7 +23,7 @@ pub struct UserToGroup {
     pub id: i32,
     pub user_id: i32,
     pub group_id: i32,
-    pub is_admin: i32
+    pub is_admin: bool
 }
 
 
