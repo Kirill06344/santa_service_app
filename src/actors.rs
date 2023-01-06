@@ -2,18 +2,43 @@ use std::fmt;
 use std::fmt::Formatter;
 use std::ops::Add;
 use crate::lib::DbActor;
-use crate::messages::{GetUsers, GetGroups, AddGroup, EnterGroup, MakeAdmin};
+use crate::messages::{GetUsers, GetGroups, AddGroup, EnterGroup, MakeAdmin, GetIdFromLogin};
 use actix::Handler;
 use diesel::{self, prelude::*};
 use diesel::r2d2::{ConnectionManager, PooledConnection};
 use crate::errors::Errors;
-use crate::errors::Errors::{AccessDenied, NotUpdated, CantFindGroupByName};
+use crate::errors::Errors::{AccessDenied, NotUpdated, CantFindGroupByName, DbConnectionError};
 use crate::models::{User, Group, UserToGroup};
 use crate::insertables::InsertableUserGroup;
 
 use crate::schema::users::dsl::*;
 use crate::schema::groups::dsl::*;
 use crate::schema::user_group::dsl::*;
+
+impl Handler<GetIdFromLogin> for DbActor {
+    type Result = Result<i32, Errors>;
+
+    fn handle(&mut self, msg: GetIdFromLogin, ctx: &mut Self::Context) -> Self::Result {
+        let mut conn = self.0.get();
+
+        if conn.is_err() {
+            return Err(Errors::DbConnectionError);
+        }
+        let mut conn = conn.unwrap();
+
+        let u_id = users.filter(login.eq(msg.login.clone())).get_result::<User>(& mut conn);
+
+        return if u_id.is_err() {
+            let res = diesel::insert_into(users)
+                .values(login.eq(msg.login))
+                .get_result::<User>(&mut conn);
+            if !res.is_err() { Ok(res.unwrap().id) } else { Err(Errors::DbConnectionError) }
+        } else {
+            Ok(u_id.unwrap().id)
+        }
+
+    }
+}
 
 //handler который обрабатывает сообщения определенного типа, приходящие на актера, которго он имплементит
 impl Handler<GetUsers> for DbActor {
@@ -127,7 +152,6 @@ impl Handler<MakeAdmin> for DbActor {
         if gr_id == -1 {
             return Err(Errors::CantFindGroupByName);
         }
-
 
         if !is_admin_in_group(& mut conn, msg.user_id, gr_id) {
             return Err(AccessDenied);

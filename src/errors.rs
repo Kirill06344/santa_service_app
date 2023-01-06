@@ -1,5 +1,6 @@
 pub enum Errors {
     CantFindGroupByName,
     AccessDenied,
-    NotUpdated
+    NotUpdated,
+    DbConnectionError
 }

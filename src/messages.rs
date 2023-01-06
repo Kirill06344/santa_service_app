@@ -11,6 +11,12 @@ use crate::errors::Errors;
 #[rtype(result = "QueryResult<Vec<User>>")]
 pub struct GetUsers;
 
+#[derive(Message, Deserialize)]
+#[rtype(result = "Result<i32, Errors>")]
+pub struct GetIdFromLogin {
+    pub login: String
+}
+
 #[derive(Message)]
 #[rtype(result = "QueryResult<Vec<Group>>")]
 pub struct GetGroups;
