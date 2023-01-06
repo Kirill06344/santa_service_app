@@ -57,7 +57,7 @@ async fn main() -> Result<(), reqwest::Error> {
         let command_args: Vec<_> = command_args.split(" ").collect();
         let command: &str = command_args[0];
         let amount_of_args: usize = command_args.len();
-        if (amount_of_args != 3 && command == "assign")  || (amount_of_args != 2 && command != "assign") {
+        if (amount_of_args == 3 && command != "assign")  || amount_of_args != 2 {
             continue;
         }
         let mut admin_login: Option<String> = None;
