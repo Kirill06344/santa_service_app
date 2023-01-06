@@ -48,18 +48,20 @@ async fn main() -> Result<(), reqwest::Error> {
         //print!("{}",serde_json::to_string(&user).unwrap());
         //let a: str;
         let d = a {
-            name: "zxcnmnqewfdds".to_string(),
+            name: "zxcnmnqewfddsaazxczxczcx".to_string(),
             user_id: 45
         };
-        let response: zxc = reqwest::Client::new()
+        let response :zxc = reqwest::Client::new()
             .post("http://127.0.0.1:8080/users/add_group")
             .json(&d)
             .send()
             .await?
             .json()
             .await?;
+
         //println!("{:#?}", response); // response from server
         println!("{}, {}, {}", response.id, response.name, response.closed);
+        //println!("{:?}", response);
     }
     Ok(())
 }
