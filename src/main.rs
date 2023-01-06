@@ -1,7 +1,7 @@
 pub mod console;
 use console::get_data;
 pub mod structures;
-use structures::{User, PersonalId};
+use structures::{User};
 use std::collections::HashMap;
 use reqwest::StatusCode;
 
@@ -43,10 +43,10 @@ async fn main() -> Result<(), reqwest::Error> {
             .json(&user_login)
             .send()
             .await?;
-        let mut current_id: Option<u32> = None;
+        let mut current_id: Option<i32> = None;
         if current_user_response.status() == StatusCode::OK {
-            let current_user: PersonalId = current_user_response.json().await?;
-            current_id.replace(current_user.id.unwrap());
+            let current_user: i32 = current_user_response.json().await?;
+            current_id.replace(current_user);
         }
         else {
             let error_message: String = current_user_response.json().await?;
