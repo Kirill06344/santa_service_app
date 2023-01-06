@@ -48,7 +48,7 @@ async fn main() -> Result<(), reqwest::Error> {
         //print!("{}",serde_json::to_string(&user).unwrap());
         //let a: str;
         let d = a {
-            name: "aasffsfs".to_string(),
+            name: "nmnmnmnqqqqqqq".to_string(),
             user_id: 45
         };
         let response = reqwest::Client::new()
