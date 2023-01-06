@@ -58,22 +58,27 @@ async fn main() -> Result<(), reqwest::Error> {
             if get_data(&mut command_args).is_err() {
                 break;
             }
+
+            println!("{}", command_args);
             let command_args: Vec<_> = command_args.trim().split(" ").collect();
             let command: &str = command_args[0];
+
             let amount_of_args: usize = command_args.len();
             if (amount_of_args == 3 && command != "assign")  || amount_of_args != 2 {
                 continue;
             }
             
-            let mut admin_login: String = user_login.to_string();
+            let mut admin_name: String = user_login.to_string();
             if command == "assign" {
-                admin_login = command_args[2].to_string();
+                admin_name = command_args[2].to_string();
             }
+
             let current_command: User = User {
-                id: (current_id),
                 group_name: (command_args[1].to_string()),
-                admin_login
+                user_id: (current_id),
+                admin_name
             };
+            println!("{} {} {}", current_command.user_id, current_command.group_name, current_command.admin_name);
             match urls_container.get(command) {
                 Some(url) => {
                     //1-st bariant
