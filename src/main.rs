@@ -65,57 +65,43 @@ async fn main() -> Result<(), reqwest::Error> {
                 continue;
             }
             
-            let mut admin_login: Option<String> = None;
+            let mut admin_login: String = user_login.to_string();
             if command == "assign" {
-                admin_login = Some(command_args[2].to_string());
+                admin_login = command_args[2].to_string();
             }
             let current_command: User = User {
                 id: (current_id),
                 group_name: (command_args[1].to_string()),
                 admin_login
             };
-            // match urls_container.get(command) {
-            //     Some(url) => {
-            //         //1-st bariant
-            //         let command_response = reqwest::Client::new()
-            //             .post(*url)
-            //             .json(&current_command)
-            //             .send()
-            //             .await?;
-            //
-            //         if command_response.status() == StatusCode::OK {
-            //             match command {
-            //                 "assign" => printAssignAdminResult(command_response.text()),
-            //                 "create" => printCreateGroupResult(command_response.text()),
-            //                 "delete" => printDeleteGroupResult(command_response.text()),
-            //                 "join" => printJoinGroupResult(command_response.text()),
-            //                 "leave" => printLeaveGroupResult(command_response.text()),
-            //                 "deleteAdmin" => printDeleteAdminResult(command_response.text()),
-            //                 "generateSantas" => printGenerateSantasResul(command_response.text()),
-            //             }
-            //         }
-            //         else {
-            //             let error_message: String = current_user_response.json().await?;
-            //             println!("{}", error_message);
-            //             continue;
-            //         }
-            //
-            //         //2-nd bariant
-            //         // tokio::task::spawn_blocking(|| {
-            //         //     match do_post_request(*url, current_command) {
-            //         //         Ok(response) => {
-            //         //             println!("{:?}", response);
-            //         //         },
-            //         //         Err(error) => {
-            //         //             println!("Error: {:?}", error);
-            //         //         }
-            //         //     };
-            //         // })
-            //         // .await
-            //         // .expect("Task panicked")
-            //     },
-            //     None => continue,
-            // }
+            match urls_container.get(command) {
+                Some(url) => {
+                    //1-st bariant
+                    let message: String = reqwest::Client::new()
+                        .post(url)
+                        .json(&current_command)
+                        .send()
+                        .await?
+                        .json()
+                        .await?;
+                    println!("{}", message);
+           
+                    //2-nd bariant
+                    // tokio::task::spawn_blocking(|| {
+                    //     match do_post_request(*url, current_command) {
+                    //         Ok(response) => {
+                    //             println!("{:?}", response);
+                    //         },
+                    //         Err(error) => {
+                    //             println!("Error: {:?}", error);
+                    //         }
+                    //     };
+                    // })
+                    // .await
+                    // .expect("Task panicked")
+                },
+                None => continue,
+            }
         }
 
         println!("You have been log out of profile. Would you like to log in to your profile?[Y/N]");

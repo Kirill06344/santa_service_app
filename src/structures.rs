@@ -4,5 +4,5 @@ use serde::{Serialize, Deserialize};
 pub struct User {
     pub id: i32,
     pub group_name: String,
-    pub admin_login: Option<String>,
+    pub admin_login: String,
 }
