@@ -2,9 +2,10 @@ use std::fmt;
 use std::fmt::Formatter;
 use std::ops::Add;
 use crate::lib::DbActor;
-use crate::messages::{GetUsers, GetGroups, AddGroup, EnterGroup};
+use crate::messages::{GetUsers, GetGroups, AddGroup, EnterGroup, MakeAdmin};
 use actix::Handler;
 use diesel::{self, prelude::*};
+use diesel::r2d2::{ConnectionManager, PooledConnection};
 use serde::de::value::Error;
 use crate::models::{User, Group, UserToGroup};
 use crate::insertables::InsertableUserGroup;
@@ -67,6 +68,13 @@ impl Handler<AddGroup> for DbActor {
     }
 }
 
+pub fn find_group_id_by_name(conn: & mut PooledConnection<ConnectionManager<PgConnection>>, group_name: String) -> i32 {
+    let founded_group = groups.filter(name.eq(group_name)).get_result::<Group>(conn);
+    if founded_group.is_err() {
+        return -1;
+    }
+    founded_group.unwrap().id
+}
 
 impl Handler<EnterGroup> for DbActor{
     type Result = QueryResult<String>;
@@ -74,17 +82,17 @@ impl Handler<EnterGroup> for DbActor{
     fn handle(&mut self, msg: EnterGroup, ctx: &mut Self::Context) -> Self::Result {
         let mut conn = self.0.get().expect("Database is unable");
 
-        let founded_group = groups.filter(name.eq(msg.name)).get_result::<Group>(& mut conn);
-        if founded_group.is_err() {
-            return Ok("Group doesn't exist".to_string());
+        let gr_id = find_group_id_by_name(& mut conn, msg.name);
+        if gr_id == -1 {
+            return Ok("Group with this name doesn't exists!".to_string());
         }
 
-        let already_in_group = user_group.filter(user_id.eq(msg.user_id)).filter(group_id.eq(founded_group.as_ref().unwrap().id)).execute(& mut conn);
+        let already_in_group = user_group.filter(user_id.eq(msg.user_id)).filter(group_id.eq(gr_id)).execute(& mut conn);
 
         if !already_in_group.is_err() && already_in_group.unwrap() == 0 {
             let dep_group = InsertableUserGroup {
                 user_id: msg.user_id,
-                group_id: founded_group.as_ref().unwrap().id,
+                group_id: gr_id,
                 is_admin: false
             };
 
@@ -96,6 +104,39 @@ impl Handler<EnterGroup> for DbActor{
             return Ok("You are already in this group!".to_string());
         }
 
+    }
+}
+
+pub fn is_admin_in_group(conn: & mut PooledConnection<ConnectionManager<PgConnection>>, u_id: i32, g_id: i32) -> bool {
+    let res: QueryResult<usize> = user_group.filter(user_id.eq(u_id)).filter(group_id.eq(g_id)).filter(is_admin.eq(true)).execute(conn);
+    if res.is_err() || res.unwrap() == 0 {
+        return false;
+    }
+    return true;
+}
+
+
+impl Handler<MakeAdmin> for DbActor {
+    type Result = QueryResult<UserToGroup>;
+
+    fn handle(&mut self, msg: MakeAdmin, ctx: &mut Self::Context) -> Self::Result {
+        let mut conn = self.0.get().expect("Database is unable");
+
+        let gr_id = find_group_id_by_name(& mut conn, msg.group_name);
+        if gr_id == -1 {
+            return Err(diesel::result::Error::NotFound);
+        }
+
+
+        if !is_admin_in_group(& mut conn, msg.user_id, gr_id) {
+            return Err(diesel::result::Error::NotFound);
+        }
+
+        diesel::update(user_group
+            .filter(user_id.eq(msg.future_admin_id))
+            .filter(group_id.eq(gr_id)))
+            .set(is_admin.eq(true))
+            .get_result::<UserToGroup>(& mut conn)
     }
 }
 
