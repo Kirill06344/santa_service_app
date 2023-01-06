@@ -37,13 +37,10 @@ async fn main() -> Result<(), reqwest::Error> {
         if get_data(&mut user_login).is_err() {
             break;
         }
-        let current_login: PersonalId = PersonalId {
-            id: None,
-            login: user_login.to_string(),
-        };
+
         let current_user_response = reqwest::Client::new()
             .post("http://127.0.0.1:8080/get_login_id")
-            .json(&current_login)
+            .json(&user_login)
             .send()
             .await?;
         let mut current_id: Option<u32> = None;
