@@ -38,7 +38,6 @@ impl Handler<AddGroup> for DbActor {
     type Result = QueryResult<Group>;
 
     fn handle(&mut self, msg: AddGroup, ctx: &mut Self::Context) -> Self::Result {
-        println!("{}, {}", msg.name, msg.user_id);
         let mut conn = self.0.get().expect("Database is unable");
 
         let inserted_group = diesel::insert_into(groups)
