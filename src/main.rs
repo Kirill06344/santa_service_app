@@ -13,7 +13,7 @@ async fn do_post_request(url: &str, data: User) -> Result<(), reqwest::Error> {
         .await?
         .json()
         .await?;//Todo : do error handling
-    
+    println!("{:?}", response);
     Ok(())
 }
 
@@ -47,7 +47,6 @@ async fn main() -> Result<(), reqwest::Error> {
         .await?;//Todo : do error handling
     
     let current_id = current_user.id.unwrap();
-    
     loop {
         let mut command_args = String::new();
         println!("Enter your command:");
@@ -60,6 +59,7 @@ async fn main() -> Result<(), reqwest::Error> {
         if (amount_of_args == 3 && command != "assign")  || amount_of_args != 2 {
             continue;
         }
+        
         let mut admin_login: Option<String> = None;
         if command == "assign" {
             admin_login = Some(command_args[2].to_string());
@@ -70,7 +70,30 @@ async fn main() -> Result<(), reqwest::Error> {
             admin_login
         };
         match urls_container.get(command) {
-            Some(url) => do_post_request(url, current_command)?,
+            Some(url) => {
+                //1-st bariant
+                let response: User = reqwest::Client::new()
+                .post(*url)
+                .json(&current_command)
+                .send()
+                .await?
+                .json()
+                .await?;//Todo : do error handling
+
+                //2-nd bariant
+                // tokio::task::spawn_blocking(|| {
+                //     match do_post_request(*url, current_command) {
+                //         Ok(response) => {
+                //             println!("{:?}", response);
+                //         },
+                //         Err(error) => {
+                //             println!("Error: {:?}", error);
+                //         }
+                //     };
+                // })
+                // .await
+                // .expect("Task panicked")
+            },
             None => continue,
         } 
     }
