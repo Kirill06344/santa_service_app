@@ -1,7 +1,9 @@
 pub mod console;
 use console::get_data;
 pub mod structures;
-use structures::{User};
+use structures::User;
+pub mod generator;
+use generator::get_urls_container;
 use std::collections::HashMap;
 use reqwest::StatusCode;
 
@@ -20,15 +22,7 @@ async fn do_post_request(url: &str, data: User) -> Result<(), reqwest::Error> {
 
 #[tokio::main]
 async fn main() -> Result<(), reqwest::Error> {
-    let mut urls_container:HashMap<&str, &str> = HashMap::new();
-    urls_container.insert("create", "http://127.0.0.1:8080/users/addGroup");
-    urls_container.insert("delete", "http://127.0.0.1:8080/users/deleteGroup");
-    urls_container.insert("join", "http://127.0.0.1:8080/users/joinGroup");
-    urls_container.insert("leave", "http://127.0.0.1:8080/users/leaveGroup");
-    urls_container.insert("assign", "http://127.0.0.1:8080/users/assignAdmin");
-    urls_container.insert("deleteAdmin", "http://127.0.0.1:8080/users/deleteAdmin");
-    urls_container.insert("generateSantas", "http://127.0.0.1:8080/users/generateSanta");
-
+    let urls_container:HashMap<String, String> = get_urls_container();
 
     loop {
         let mut user_login = String::new();
