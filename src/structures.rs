@@ -16,3 +16,9 @@ pub struct User {
     pub login: String,
     pub command: Commands,
 }
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct a {
+    pub name: String,
+    pub user_id: i32
+}
