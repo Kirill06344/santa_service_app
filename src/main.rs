@@ -69,10 +69,37 @@ async fn main() -> Result<(), reqwest::Error> {
             group_name: (command_args[1].to_string()),
             admin_login
         };
+<<<<<<< HEAD
         match urls_container.get(command) {
             Some(url) => do_post_request(url, current_command)?,
             None => continue,
         } 
+=======
+        let command: Commands = command.unwrap();
+        let user = User {
+            login: user_login,
+            command,
+        };
+
+
+        //print!("{}",serde_json::to_string(&user).unwrap());
+        //let a: str;
+        let d = a {
+            name: "zxcnmnqewfddsaazxczxczcx".to_string(),
+            user_id: 45
+        };
+        let response :zxc = reqwest::Client::new()
+            .post("http://127.0.0.1:8080/users/add_group")
+            .json(&d)
+            .send()
+            .await?
+            .json()
+            .await?;
+
+        //println!("{:#?}", response); // response from server
+        println!("{}, {}, {}", response.id, response.name, response.closed);
+        //println!("{:?}", response);
+>>>>>>> d828ea10c3d73ab4f30570968ad86e08f9a59147
     }
     Ok(())
 }
