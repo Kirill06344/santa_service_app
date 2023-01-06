@@ -78,7 +78,6 @@ async fn main() -> Result<(), reqwest::Error> {
                 user_id: (current_id),
                 admin_name
             };
-            println!("{} {} {}", current_command.user_id, current_command.group_name, current_command.admin_name);
             match urls_container.get(command) {
                 Some(url) => {
                     //1-st bariant
@@ -90,7 +89,7 @@ async fn main() -> Result<(), reqwest::Error> {
                         .json()
                         .await?;
                     println!("{}", message);
-           
+
                     //2-nd bariant
                     // tokio::task::spawn_blocking(|| {
                     //     match print_command_result(*url, current_command) {
