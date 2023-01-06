@@ -17,7 +17,9 @@ pub async fn get_users(state: Data<AppState>) -> impl Responder {
 
     //отправляем сообщение актеру, так как у нас 5 потоков, то сможем отправлять 5 сообщений одновременно
     match db.send(GetUsers).await {
-        Ok(Ok(info)) => HttpResponse::Ok().json(info),
+        Ok(Ok(info)) => {
+            HttpResponse::Ok().json("1")
+        },
         Ok(Err(_)) => HttpResponse::BadRequest().json("No users found"),
         _ => HttpResponse::InternalServerError().json("Unable to retrieve users")
     }
