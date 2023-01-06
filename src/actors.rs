@@ -129,7 +129,7 @@ impl Handler<MakeAdmin> for DbActor {
 
 
         if !is_admin_in_group(& mut conn, msg.user_id, gr_id) {
-            return Err(diesel::result::Error::AlreadyInTransaction);
+            return Err(diesel::result::Error::NotFound);
         }
 
         diesel::update(user_group
