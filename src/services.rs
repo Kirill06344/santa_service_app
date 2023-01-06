@@ -69,7 +69,10 @@ pub async fn add_group(state: Data<AppState>, data: Json<MakeAdmin>) -> impl Res
     };
 
     match db.send(msg).await {
-        Ok(Ok(info)) => HttpResponse::Ok().json(info),
+        Ok(Ok(info)) => {
+            let name = info.name;
+            HttpResponse::Ok().json(format!("Group with name {name}"))
+        },
         Ok(Err(error)) => {
             match error {
                 Errors::NotUniqueGroupName => HttpResponse::NotAcceptable().json("Group already exists!"),
