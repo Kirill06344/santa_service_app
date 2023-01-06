@@ -15,7 +15,7 @@ async fn print_command_result(url: &str, data: User) -> Result<(), reqwest::Erro
         .send()
         .await?
         .json()
-        .await?;//Todo : do error handling
+        .await?;
     println!("{}", response);
     Ok(())
 }

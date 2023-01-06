@@ -1,6 +1,6 @@
-use serde::{Serialize, Deserialize};
+use serde::{Serialize};
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Debug)]
 pub struct User {
     pub id: i32,
     pub group_name: String,
