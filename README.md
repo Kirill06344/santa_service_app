@@ -1,9 +1,9 @@
-# santa_service_app</br>
-3530904/10004</br>
-Web Application with using Rust(Actix, Diesel)</br>
-Using SQL: Postgres</br>
-Supported with console utils</br>
-Contributor's list:</br>
+# santa_service_app
+3530904/10004
+Web Application with using Rust(Actix, Diesel)
+Using SQL: Postgres
+Supported with console utils
+Contributor's list:
 [Kiril Bazhenov](https://github.com/Kirill06344)
 [Emelyanov Pavel](https://github.com/llav3ji2019)
 [Nefedev Viktor](https://github.com/Koteron)
