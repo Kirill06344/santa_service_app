@@ -1,3 +1,4 @@
+use std::ops::DerefMut;
 use actix_web::{App, get, HttpResponse, HttpServer, post, Responder};
 use actix_web::web::{Json, Path, Data};
 
@@ -92,8 +93,8 @@ pub async fn join_group(state: Data<AppState>, data: Json<MakeAdmin>) -> impl Re
     let db: Addr<DbActor> = state.as_ref().db.clone();
 
     let msg = EnterGroup {
-        name: data.0.group_name,
-        user_id: data.0.user_id
+        name: data.0.group_name.clone(),
+        user_id: data.0.user_id.clone()
     };
 
     match db.send(msg).await {
@@ -115,9 +116,11 @@ pub async fn join_group(state: Data<AppState>, data: Json<MakeAdmin>) -> impl Re
 pub async fn make_admin(state: Data<AppState>, data: Json<MakeAdmin>) -> impl Responder {
     let db: Addr<DbActor> = state.as_ref().db.clone();
 
+    let copy = data.0.clone();
+
     match db.send(data.0).await {
         Ok(Ok(info)) => {
-            HttpResponse::Ok().json(format!("User {x} is now admin in group {y}", x = data.admin_name, y = data.admin_name))
+            HttpResponse::Ok().json(format!("User {x} is now admin in group {y}", x = copy.admin_name, y = copy.admin_name))
         },
         Ok(Err(error)) => {
             match error {

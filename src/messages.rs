@@ -36,7 +36,7 @@ pub struct EnterGroup {
 }
 
 
-#[derive(Message, Deserialize)]
+#[derive(Message, Deserialize, Clone)]
 #[rtype(result = "Result<UserToGroup, Errors>")]
 pub struct MakeAdmin {
     pub group_name: String,
