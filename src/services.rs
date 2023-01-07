@@ -16,6 +16,7 @@ use crate::errors::Errors;
 
 use actix::Addr;
 use actix::fut::err;
+use crate::messages::StartSanta;
 
 
 #[post("/get_login_id")]
@@ -205,6 +206,32 @@ pub async fn delete_group(state: Data<AppState>, data: Json<MakeAdmin>) -> impl 
             match error {
                 Errors::CantFindGroupByName => HttpResponse::NotAcceptable().json(format!("Can't find group with this name {n}!", n = copy)),
                 Errors::AccessDenied => HttpResponse::Forbidden().json("You are not an admin!"),
+                _ => HttpResponse::InternalServerError().json("Something went wrong!")
+            }
+        }
+        _ => HttpResponse::InternalServerError().json("Unable to connect!")
+    }
+}
+
+#[post("users/start_santa")]
+pub async fn start_santa(state: Data<AppState>, data: Json<MakeAdmin>) -> impl Responder {
+    let db: Addr<DbActor> = state.as_ref().db.clone();
+    let copy = data.group_name.clone();
+
+    let msg = StartSanta {
+        group_name: data.group_name.clone(),
+        user_id: data.user_id.clone()
+    };
+
+    match db.send(msg).await {
+        Ok(Ok(info)) => {
+            HttpResponse::Ok().json(info)
+        },
+        Ok(Err(error)) => {
+            match error {
+                Errors::CantFindGroupByName => HttpResponse::NotAcceptable().json(format!("Can't find group with this name {n}!", n = copy)),
+                Errors::AccessDenied => HttpResponse::Forbidden().json("You are not an admin!"),
+                Errors::NotEnoughParticipants => HttpResponse::Conflict().json("Not enough participants in group, min value is 3"),
                 _ => HttpResponse::InternalServerError().json("Something went wrong!")
             }
         }
