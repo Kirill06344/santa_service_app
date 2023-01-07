@@ -1,13 +1,12 @@
 use std::fmt;
-use std::fmt::Formatter;
+use std::fmt::{format, Formatter};
 use std::ops::Add;
 use crate::lib::DbActor;
-use crate::messages::{GetUsers, GetGroups, AddGroup, EnterGroup, MakeAdmin, GetIdFromLogin, Resign};
+use crate::messages::{GetUsers, GetGroups, AddGroup, EnterGroup, MakeAdmin, GetIdFromLogin, Resign, LeaveGroup};
 use actix::Handler;
 use diesel::{self, prelude::*};
 use diesel::r2d2::{ConnectionManager, PooledConnection};
 use crate::errors::Errors;
-use crate::errors::Errors::{AccessDenied, NotUpdated, CantFindGroupByName, DbConnectionError, NotUniqueGroupName};
 use crate::models::{User, Group, UserToGroup};
 use crate::insertables::InsertableUserGroup;
 
@@ -150,23 +149,31 @@ pub fn is_admin_in_group_other_curr_user(conn: & mut PooledConnection<Connection
 }
 
 
+fn check_admin_access(conn: & mut PooledConnection<ConnectionManager<PgConnection>>, u_id: i32, group_name: String) -> Result<i32, Errors> {
+    let gr_id = find_group_id_by_name(conn, group_name);
+    if gr_id == -1 {
+        return Err(Errors::CantFindGroupByName);
+    }
+
+    if !is_admin_in_group(conn, u_id, gr_id) {
+        return Err(Errors::AccessDenied);
+    }
+
+    Ok(gr_id)
+}
+
 impl Handler<MakeAdmin> for DbActor {
     type Result = Result<UserToGroup, Errors>;
 
     fn handle(&mut self, msg: MakeAdmin, ctx: &mut Self::Context) -> Self::Result {
         let mut conn = self.0.get().expect("Database is unable");
 
-        let gr_id = find_group_id_by_name(& mut conn, msg.group_name);
-        if gr_id == -1 {
-            return Err(Errors::CantFindGroupByName);
-        }
+        let gr_id = check_admin_access(& mut conn, msg.user_id, msg.group_name);
 
-        if !is_admin_in_group(& mut conn, msg.user_id, gr_id) {
-            return Err(AccessDenied);
-        }
+        let gr_id = if !gr_id.is_err() {gr_id.unwrap()} else {return Err(gr_id.err().unwrap());};
 
-        let future_admin_id = users.filter(login.eq(msg.admin_name)).get_result::<User>(& mut conn);
-        if future_admin_id.is_err(){
+         let future_admin_id = users.filter(login.eq(msg.admin_name)).get_result::<User>(& mut conn);
+       if future_admin_id.is_err(){
             return Err(Errors::CantFindUserName);
         }
 
@@ -186,14 +193,9 @@ impl Handler<Resign> for DbActor {
     fn handle(&mut self, msg: Resign, ctx: &mut Self::Context) -> Self::Result {
         let mut conn = self.0.get().expect("Database is unable");
 
-        let gr_id = find_group_id_by_name(& mut conn, msg.group_name);
-        if gr_id == -1 {
-            return Err(Errors::CantFindGroupByName);
-        }
+        let gr_id = check_admin_access(& mut conn, msg.user_id, msg.group_name);
 
-        if !is_admin_in_group(& mut conn, msg.user_id, gr_id) {
-            return Err(Errors::NotUpdated);
-        }
+        let gr_id = if !gr_id.is_err() {gr_id.unwrap()} else {return Err(gr_id.err().unwrap());};
 
         return if is_admin_in_group_other_curr_user(&mut conn, msg.user_id, gr_id) {
             let res = diesel::update(user_group
@@ -207,6 +209,40 @@ impl Handler<Resign> for DbActor {
         }
 
 
+    }
+}
+
+impl Handler<LeaveGroup> for DbActor {
+    type Result = Result<String, Errors>;
+
+    fn handle(&mut self, msg: LeaveGroup, ctx: &mut Self::Context) -> Self::Result {
+        let mut conn = self.0.get().expect("Database is unable");
+
+
+        let gr_id = find_group_id_by_name(& mut conn, msg.group_name.clone());
+        if gr_id == -1 {
+            return Err(Errors::CantFindGroupByName);
+        }
+
+        let is_user_admin = is_admin_in_group(& mut conn, msg.user_id, gr_id);
+        let is_admin_there = is_admin_in_group_other_curr_user(&mut conn, msg.user_id, gr_id);
+
+
+        if !is_user_admin || (is_user_admin && is_admin_there) {
+            let deleted_rows = diesel::delete(
+                user_group
+                    .filter(user_id.eq(msg.user_id))
+                    .filter(group_id.eq(gr_id))
+            ).execute(& mut conn);
+
+            return if !deleted_rows.is_err() && deleted_rows.unwrap() != 0 {
+                Ok(format!("You successfully leaved a group {n}", n = msg.group_name.clone()))
+            } else {
+                Err(Errors::NotUpdated)
+            }
+
+        }
+        Err(Errors::AloneAdmin)
     }
 }
 
