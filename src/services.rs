@@ -8,7 +8,7 @@ use serde::{Deserialize};
 use crate::{
     messages::GetUsers, messages::GetGroups, messages::AddGroup,
     messages::EnterGroup, messages::MakeAdmin, messages::GetIdFromLogin,
-    messages::Resign, messages::LeaveGroup,
+    messages::Resign, messages::LeaveGroup, messages::DeleteGroup,
     AppState, DbActor
 };
 
@@ -164,7 +164,7 @@ pub async fn resign(state: Data<AppState>, data: Json<MakeAdmin>) -> impl Respon
 #[post("users/leave_group")]
 pub async fn leave_group(state: Data<AppState>, data: Json<MakeAdmin>) -> impl Responder {
     let db: Addr<DbActor> = state.as_ref().db.clone();
-    let copy = data.0.clone();
+    let copy = data.group_name.clone();
 
     let msg = LeaveGroup {
         group_name: data.group_name.clone(),
@@ -177,9 +177,9 @@ pub async fn leave_group(state: Data<AppState>, data: Json<MakeAdmin>) -> impl R
         },
         Ok(Err(error)) => {
             match error {
-                Errors::CantFindGroupByName => HttpResponse::NotAcceptable().json("Can't find group with this name!"),
+                Errors::CantFindGroupByName => HttpResponse::NotAcceptable().json(format!("Can't find group with this name {n}!", n = copy)),
                 Errors::AloneAdmin => HttpResponse::Forbidden().json("You are alone admin! Don't leave your post!!!!"),
-                Errors::NotUpdated => HttpResponse::Conflict().json(format!("You didn't leave group {n}, because you were not in the group {n}",n = copy.group_name)),
+                Errors::NotUpdated => HttpResponse::Conflict().json(format!("You didn't leave group {n}, because you were not in the group {n}",n = copy)),
                 _ => HttpResponse::InternalServerError().json("Something went wrong!")
             }
         }
@@ -187,3 +187,27 @@ pub async fn leave_group(state: Data<AppState>, data: Json<MakeAdmin>) -> impl R
     }
 }
 
+#[post("users/delete_group")]
+pub async fn delete_group(state: Data<AppState>, data: Json<MakeAdmin>) -> impl Responder {
+    let db: Addr<DbActor> = state.as_ref().db.clone();
+    let copy = data.group_name.clone();
+
+    let msg = DeleteGroup {
+        group_name: data.group_name.clone(),
+        user_id: data.user_id.clone()
+    };
+
+    match db.send(msg).await {
+        Ok(Ok(info)) => {
+            HttpResponse::Ok().json(info)
+        },
+        Ok(Err(error)) => {
+            match error {
+                Errors::CantFindGroupByName => HttpResponse::NotAcceptable().json(format!("Can't find group with this name {n}!", n = copy)),
+                Errors::AccessDenied => HttpResponse::Forbidden().json("You are not an admin!"),
+                _ => HttpResponse::InternalServerError().json("Something went wrong!")
+            }
+        }
+        _ => HttpResponse::InternalServerError().json("Unable to connect!")
+    }
+}
