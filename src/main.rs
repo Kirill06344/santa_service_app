@@ -1,23 +1,11 @@
-pub mod console;
-use console::get_data;
-pub mod structures;
-use structures::User;
-pub mod generator;
-use generator::get_urls_container;
+pub mod console_interaction;
+use console_interaction::{get_data, check_command};
+pub mod urls_generator;
+use urls_generator::get_urls_container;
 use std::collections::HashMap;
 use reqwest::StatusCode;
-
-#[tokio::main]
-async fn print_command_result(url: String, data: User) -> Result<String, reqwest::Error> {
-    let response: String = reqwest::Client::new()
-        .post(url)
-        .json(&data)
-        .send()
-        .await?
-        .json()
-        .await?;
-    Ok(response)
-}
+pub mod server_interaction;
+use server_interaction::{get_command_result, User};
 
 #[tokio::main]
 async fn main() -> Result<(), reqwest::Error> {
@@ -52,14 +40,10 @@ async fn main() -> Result<(), reqwest::Error> {
             }
             let command_args: Vec<_> = command_args.trim().split(" ").collect();
             let command: &str = command_args[0];
-            let amount_of_args: usize = command_args.len();
-
-
-            if (amount_of_args < 2 || amount_of_args > 3) ||  (amount_of_args == 2 && command == "assign") || (amount_of_args == 3 && command != "assign") {
+            if check_command(command, &command_args.len()) {
                 println!("Wrong format of command!");
                 continue;
             }
-
             let mut admin_name: String = user_login.to_string();
             if command == "assign" {
                 admin_name = command_args[2].to_string();
@@ -73,7 +57,7 @@ async fn main() -> Result<(), reqwest::Error> {
                 Some(url) => {
                     let needed_url  = url.clone();
                     tokio::task::spawn_blocking(|| {
-                        println!("{}", print_command_result(needed_url, current_command).unwrap());
+                        println!("{}", get_command_result(needed_url, current_command).unwrap());
                     }).await.expect("Task panicked")
                 },
                 None => {
@@ -84,9 +68,10 @@ async fn main() -> Result<(), reqwest::Error> {
         }
         println!("You have been log out of profile. Would you like to log in to your profile?[Y/N]");
         let mut change_profile: String = String::new();
-        if get_data(&mut change_profile).is_err() || !(change_profile == "Y" || change_profile == "y") {
+        if get_data(&mut change_profile).is_err() || !(change_profile.trim() == "Y" || change_profile.trim() == "y") {
             break;
         }
     }
     Ok(())
 }
+//print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
