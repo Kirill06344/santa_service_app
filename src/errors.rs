@@ -4,5 +4,6 @@ pub enum Errors {
     NotUpdated,
     DbConnectionError,
     NotUniqueGroupName,
-    CantFindUserName
+    CantFindUserName,
+    AloneAdmin
 }
