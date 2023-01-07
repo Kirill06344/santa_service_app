@@ -6,5 +6,7 @@ pub enum Errors {
     DbConnectionError,
     NotUniqueGroupName,
     CantFindUserName,
-    AloneAdmin
+    AloneAdmin,
+    GroupClosed,
+    NotEnoughParticipants
 }
