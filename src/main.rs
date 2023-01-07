@@ -53,9 +53,13 @@ async fn main() -> Result<(), reqwest::Error> {
             let command_args: Vec<_> = command_args.trim().split(" ").collect();
             let command: &str = command_args[0];
             let amount_of_args: usize = command_args.len();
-            if (command == "assign" && amount_of_args != 3) || (amount_of_args == 3 && command != "assign") || amount_of_args != 2 {
+
+
+            if (amount_of_args < 2 || amount_of_args > 3) ||  (amount_of_args == 2 && command == "assign") || (amount_of_args == 3 && command != "assign") {
+                println!("Wrong format of command!");
                 continue;
             }
+
             let mut admin_name: String = user_login.to_string();
             if command == "assign" {
                 admin_name = command_args[2].to_string();
@@ -72,7 +76,10 @@ async fn main() -> Result<(), reqwest::Error> {
                         println!("{}", print_command_result(needed_url, current_command).unwrap());
                     }).await.expect("Task panicked")
                 },
-                None => continue,
+                None => {
+                    println!("Wrong format of command!");
+                    continue;
+                },
             }
         }
         println!("You have been log out of profile. Would you like to log in to your profile?[Y/N]");
