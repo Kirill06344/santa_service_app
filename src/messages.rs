@@ -51,3 +51,10 @@ pub struct Resign {
     pub user_id: i32
 }
 
+#[derive(Message, Deserialize)]
+#[rtype(result = "Result<String, Errors>")]
+pub struct LeaveGroup {
+    pub group_name: String,
+    pub user_id: i32
+}
+
