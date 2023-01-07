@@ -141,6 +141,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "colored"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b3616f750b84d8f0de8a58bda93e08e2a81ad3f523089b05f1dffecab48c6cbd"
+dependencies = [
+ "atty",
+ "lazy_static",
+ "winapi",
+]
+
+[[package]]
 name = "core-foundation"
 version = "0.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -864,10 +875,12 @@ dependencies = [
 name = "rust"
 version = "0.1.0"
 dependencies = [
+ "colored",
  "mini-redis",
  "reqwest",
  "serde",
  "serde_json",
+ "simple_tables",
  "tokio",
 ]
 
@@ -981,6 +994,34 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e51e73328dc4ac0c7ccbda3a494dfa03df1de2f46018127f60c693f2648455b0"
 dependencies = [
  "libc",
+]
+
+[[package]]
+name = "simple_tables"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a1248aa113774f3193c5ad090ee8a429005d32fcdb722f114dce7a74356cce4c"
+dependencies = [
+ "simple_tables-core",
+ "simple_tables-derive",
+]
+
+[[package]]
+name = "simple_tables-core"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3e7d16173bdde70a696f9eaf1b49bb38f41ea7445c800ab46e6d8ac08c157551"
+
+[[package]]
+name = "simple_tables-derive"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "add2dda7ba63477aabd1ff151a8f570ebbea9c12444d07bf6ec1a7c5858bd0e7"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "simple_tables-core",
+ "syn",
 ]
 
 [[package]]
