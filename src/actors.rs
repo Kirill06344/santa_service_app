@@ -1,18 +1,24 @@
+use std::collections::{HashMap, VecDeque};
 use std::fmt;
 use std::fmt::{format, Formatter};
 use std::ops::Add;
 use crate::lib::DbActor;
-use crate::messages::{GetUsers, GetGroups, AddGroup, EnterGroup, MakeAdmin, GetIdFromLogin, Resign, LeaveGroup, DeleteGroup};
+use crate::messages::{GetUsers, GetGroups, AddGroup, EnterGroup, MakeAdmin, GetIdFromLogin, Resign, LeaveGroup, DeleteGroup, StartSanta};
 use actix::Handler;
 use diesel::{self, prelude::*};
 use diesel::r2d2::{ConnectionManager, PooledConnection};
 use crate::errors::Errors;
 use crate::models::{User, Group, UserToGroup};
-use crate::insertables::InsertableUserGroup;
+use crate::insertables::{InsertableUserGroup, InsertableSanta};
+
+extern crate rand;
+use rand::{thread_rng, Rng};
+use rand::seq::SliceRandom;
 
 use crate::schema::users::dsl::*;
 use crate::schema::groups::dsl::*;
 use crate::schema::user_group::dsl::*;
+
 
 impl Handler<GetIdFromLogin> for DbActor {
     type Result = Result<i32, Errors>;
@@ -268,5 +274,83 @@ impl Handler<DeleteGroup> for DbActor {
         }
 
         Err(Errors::DbConnectionError)
+    }
+}
+
+pub fn lottery(user_storage: &mut Vec<i32>) -> HashMap<i32, i32> {
+    let mut rng = rand::thread_rng();
+    let mut user_storage_clone =  user_storage.clone();
+    user_storage_clone.shuffle(& mut rng);
+    let mut user_storage_copy = VecDeque::from(user_storage_clone.to_vec());
+    user_storage.shuffle(&mut rng);
+
+    let mut map_tuples: HashMap<i32, i32> = HashMap::new();
+
+
+
+    for i in 0..user_storage.len() - 1 {
+        if user_storage[i] == user_storage_copy[0] {
+          user_storage_copy.swap(0, user_storage_copy.len() - 1);
+        }
+        map_tuples.insert(user_storage[i].clone(), user_storage_copy.pop_front().unwrap());
+    }
+
+    let a = user_storage.last().unwrap();
+    let b = user_storage_copy.back().unwrap();
+
+    if a == b  {
+        let tmp = map_tuples.get(&user_storage[0]).unwrap().clone();
+        map_tuples.insert(user_storage[0], b.clone());
+        map_tuples.insert(a.clone(), tmp.clone());
+    }
+
+    map_tuples
+
+}
+
+impl Handler<StartSanta> for DbActor {
+    type Result = Result<String, Errors>;
+
+    fn handle(&mut self, msg: StartSanta, ctx: &mut Self::Context) -> Self::Result {
+        let mut conn = self.0.get().expect("Database is unable");
+
+        let gr_id = check_admin_access(& mut conn, msg.user_id, msg.group_name.clone());
+
+        let gr_id = if !gr_id.is_err() {gr_id.unwrap()} else {return Err(gr_id.err().unwrap());};
+
+        let user_storage: Vec<UserToGroup>;
+        match user_group.filter(group_id.eq(gr_id)).get_results(& mut conn) {
+           Ok(res) => {user_storage = res},
+           Err(_) =>  {return Err(Errors::DbConnectionError)}
+        }
+
+        if user_storage.len() < 3 {
+            return Err(Errors::NotEnoughParticipants)
+        }
+
+        let mut user_storage :Vec<i32> = user_storage.iter().map(|u| u.user_id).collect();
+
+        let map = lottery(& mut user_storage);
+
+        for (&santa_id, &present) in map.iter() {
+            let tmp = InsertableSanta {
+                user_id: santa_id,
+                present_id: present,
+                group_id: gr_id.clone()
+            };
+            use crate::schema::santa::dsl::*;
+            let res = diesel::insert_into(santa).values(&tmp).execute(& mut conn);
+            if res.is_err() || res.unwrap() == 0 {
+                return Err(Errors::DbConnectionError);
+            }
+        }
+
+
+        use crate::schema::groups::dsl::id;
+        if !diesel::update(groups.filter(id.eq(gr_id))).set(closed.eq(true)).execute(& mut conn).is_err() {
+            Ok("You started Secret Santa!!!".to_string())
+        } else {
+            Err(Errors::DbConnectionError)
+        }
     }
 }
