@@ -44,3 +44,10 @@ pub struct MakeAdmin {
     pub admin_name: String
 }
 
+#[derive(Message, Deserialize)]
+#[rtype(result = "Result<UserToGroup, Errors>")]
+pub struct Resign {
+    pub group_name: String,
+    pub user_id: i32
+}
+
