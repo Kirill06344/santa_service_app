@@ -8,7 +8,7 @@ use std::collections::HashMap;
 use reqwest::StatusCode;
 
 #[tokio::main]
-async fn print_command_result(url: &str, data: User) -> Result<(), reqwest::Error> {
+async fn print_command_result(url: String, data: User) -> Result<String, reqwest::Error> {
     let response: String = reqwest::Client::new()
         .post(url)
         .json(&data)
@@ -16,8 +16,7 @@ async fn print_command_result(url: &str, data: User) -> Result<(), reqwest::Erro
         .await?
         .json()
         .await?;
-    println!("{}", response);
-    Ok(())
+    Ok(response)
 }
 
 #[tokio::main]
@@ -32,7 +31,6 @@ async fn main() -> Result<(), reqwest::Error> {
         }
 
         let user_login = user_login.trim();
-
 
         let current_user_response = reqwest::Client::new()
             .post("http://127.0.0.1:8080/get_login_id")
@@ -80,29 +78,22 @@ async fn main() -> Result<(), reqwest::Error> {
             };
             match urls_container.get(command) {
                 Some(url) => {
-                    //1-st bariant
-                    let message: String = reqwest::Client::new()
-                        .post(url)
-                        .json(&current_command)
-                        .send()
-                        .await?
-                        .json()
-                        .await?;
-                    println!("{}", message);
-
-                    //2-nd bariant
-                    // tokio::task::spawn_blocking(|| {
-                    //     match print_command_result(*url, current_command) {
-                    //         Ok(response) => {
-                    //             println!("{:?}", response);
-                    //         },
-                    //         Err(error) => {
-                    //             println!("Error: {:?}", error);
-                    //         }
-                    //     };
-                    // })
-                    // .await
-                    // .expect("Task panicked")
+                    // //1-st bariant
+                    // let message: String = reqwest::Client::new()
+                    //     .post(url)
+                    //     .json(&current_command)
+                    //     .send()
+                    //     .await?
+                    //     .json()
+                    //     .await?;
+                    // println!("{}", message);
+                    let needed_url  = url.clone();
+                                    //2-nd bariant
+                    tokio::task::spawn_blocking(|| {
+                        println!("{}", print_command_result(needed_url, current_command).unwrap());
+                    })
+                    .await
+                    .expect("Task panicked")
                 },
                 None => continue,
             }
