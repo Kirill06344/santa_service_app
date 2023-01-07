@@ -6,7 +6,7 @@ Supported with console utils</br>
 Contributor's list:</br>
 Kiril Bazhenov</br>
 Emelyanov Pavel</br>
-Nefedev Viktor</br>
+Nefedev Viktor (Koteron)</br>
 Roletskaya Sofia</br>
 Teslenko Anna</br>
 Gorbunova Anastasia</br>
