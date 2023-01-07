@@ -56,8 +56,6 @@ async fn main() -> Result<(), reqwest::Error> {
             if get_data(&mut command_args).is_err() {
                 break;
             }
-
-            println!("{}", command_args);
             let command_args: Vec<_> = command_args.trim().split(" ").collect();
             let command: &str = command_args[0];
 
