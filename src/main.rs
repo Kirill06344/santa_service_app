@@ -18,7 +18,7 @@ mod errors;
 
 
 use lib::{get_pool, AppState, DbActor};
-use services::{get_users, add_group, get_groups, join_group, make_admin, get_id_from_login, resign, leave_group, delete_group};
+use services::{get_users, add_group, get_groups, join_group, make_admin, get_id_from_login, resign, leave_group, delete_group, start_santa};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -42,6 +42,7 @@ async fn main() -> std::io::Result<()> {
             .service(resign)
             .service(leave_group)
             .service(delete_group)
+            .service(start_santa)
     })
     .bind(("127.0.0.1", 8080))?
     .run()
