@@ -2,7 +2,7 @@ use std::fmt;
 use std::fmt::Formatter;
 use std::ops::Add;
 use crate::lib::DbActor;
-use crate::messages::{GetUsers, GetGroups, AddGroup, EnterGroup, MakeAdmin, GetIdFromLogin};
+use crate::messages::{GetUsers, GetGroups, AddGroup, EnterGroup, MakeAdmin, GetIdFromLogin, Resign};
 use actix::Handler;
 use diesel::{self, prelude::*};
 use diesel::r2d2::{ConnectionManager, PooledConnection};
@@ -138,6 +138,17 @@ pub fn is_admin_in_group(conn: & mut PooledConnection<ConnectionManager<PgConnec
     return true;
 }
 
+pub fn is_admin_in_group_other_curr_user(conn: & mut PooledConnection<ConnectionManager<PgConnection>>, u_id: i32, g_id: i32) -> bool {
+    let res: QueryResult<usize> = user_group.filter(group_id.eq(g_id))
+        .filter(is_admin.eq(true))
+        .filter(user_id.ne(u_id))
+        .execute(conn);
+    if res.is_err() || res.unwrap() == 0 {
+        return false;
+    }
+    return true;
+}
+
 
 impl Handler<MakeAdmin> for DbActor {
     type Result = Result<UserToGroup, Errors>;
@@ -165,9 +176,37 @@ impl Handler<MakeAdmin> for DbActor {
             .set(is_admin.eq(true))
             .get_result::<UserToGroup>(& mut conn);
 
-        return if !a.is_err() {Ok(a.unwrap())} else {Err(Errors::NotUpdated)} ;
+        return if !a.is_err() {Ok(a.unwrap())} else {Err(Errors::DbConnectionError)} ;
     }
 }
 
+impl Handler<Resign> for DbActor {
+    type Result = Result<UserToGroup, Errors>;
 
+    fn handle(&mut self, msg: Resign, ctx: &mut Self::Context) -> Self::Result {
+        let mut conn = self.0.get().expect("Database is unable");
+
+        let gr_id = find_group_id_by_name(& mut conn, msg.group_name);
+        if gr_id == -1 {
+            return Err(Errors::CantFindGroupByName);
+        }
+
+        if !is_admin_in_group(& mut conn, msg.user_id, gr_id) {
+            return Err(Errors::NotUpdated);
+        }
+
+        return if is_admin_in_group_other_curr_user(&mut conn, msg.user_id, gr_id) {
+            let res = diesel::update(user_group
+                .filter(group_id.eq(gr_id))
+                .filter(user_id.eq(msg.user_id)))
+                .set(is_admin.eq(false))
+                .get_result::<UserToGroup>(&mut conn);
+            if !res.is_err() { Ok(res.unwrap()) } else { Err(Errors::DbConnectionError) }
+        } else {
+            Err(Errors::AloneAdmin)
+        }
+
+
+    }
+}
 
