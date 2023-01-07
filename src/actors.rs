@@ -2,7 +2,7 @@ use std::fmt;
 use std::fmt::{format, Formatter};
 use std::ops::Add;
 use crate::lib::DbActor;
-use crate::messages::{GetUsers, GetGroups, AddGroup, EnterGroup, MakeAdmin, GetIdFromLogin, Resign, LeaveGroup};
+use crate::messages::{GetUsers, GetGroups, AddGroup, EnterGroup, MakeAdmin, GetIdFromLogin, Resign, LeaveGroup, DeleteGroup};
 use actix::Handler;
 use diesel::{self, prelude::*};
 use diesel::r2d2::{ConnectionManager, PooledConnection};
@@ -246,3 +246,27 @@ impl Handler<LeaveGroup> for DbActor {
     }
 }
 
+impl Handler<DeleteGroup> for DbActor {
+    type Result = Result<String, Errors>;
+
+    fn handle(&mut self, msg: DeleteGroup, ctx: &mut Self::Context) -> Self::Result {
+        let mut conn = self.0.get().expect("Database is unable");
+
+        let gr_id = check_admin_access(& mut conn, msg.user_id, msg.group_name.clone());
+
+        let gr_id = if !gr_id.is_err() {gr_id.unwrap()} else {return Err(gr_id.err().unwrap());};
+
+        let delete_users_from_group = diesel::delete(user_group
+            .filter(group_id.eq(gr_id)))
+            .execute(& mut conn);
+
+        if !delete_users_from_group.is_err() {
+            use crate::schema::groups::dsl::id;
+            return if !diesel::delete(groups.filter(id.eq(gr_id))).execute(& mut conn).is_err()
+                    {Ok(format!("The group with name {n} has been deleted", n = msg.group_name))}
+                    else {Err(Errors::DbConnectionError)};
+        }
+
+        Err(Errors::DbConnectionError)
+    }
+}
