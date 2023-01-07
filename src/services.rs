@@ -8,6 +8,7 @@ use serde::{Deserialize};
 use crate::{
     messages::GetUsers, messages::GetGroups, messages::AddGroup,
     messages::EnterGroup, messages::MakeAdmin, messages::GetIdFromLogin,
+    messages::Resign,
     AppState, DbActor
 };
 
@@ -128,10 +129,36 @@ pub async fn make_admin(state: Data<AppState>, data: Json<MakeAdmin>) -> impl Re
                 Errors::CantFindGroupByName => HttpResponse::NotAcceptable().json("Can't find group with this name!"),
                 Errors::AccessDenied => HttpResponse::Forbidden().json("Access denied. You are not an admin!"),
                 Errors::NotUpdated => HttpResponse::Conflict().json("This user is already admin or he doesn't in this group"),
-                _ => HttpResponse::InternalServerError().json("Unable to make admin")
+                _ => HttpResponse::InternalServerError().json("Something went wrong!")
             }
         }
         _ => HttpResponse::InternalServerError().json("Unable to make admin")
+    }
+}
+
+#[post("/users/resign")]
+pub async fn resign(state: Data<AppState>, data: Json<MakeAdmin>) -> impl Responder {
+    let db: Addr<DbActor> = state.as_ref().db.clone();
+    let copy = data.0.clone();
+
+    let msg = Resign {
+        group_name: data.group_name.clone(),
+        user_id: data.user_id.clone()
+    };
+
+    match db.send(msg).await {
+        Ok(Ok(info)) => {
+            HttpResponse::Ok().json(format!("Now you are not an admin in group {x}", x = copy.group_name))
+        },
+        Ok(Err(error)) => {
+            match error {
+                Errors::CantFindGroupByName => HttpResponse::NotAcceptable().json("Can't find group with this name!"),
+                Errors::AloneAdmin => HttpResponse::Forbidden().json("You are alone admin! Don't leave your post!!!!"),
+                Errors::NotUpdated => HttpResponse::Conflict().json(format!("You were not an admin in group {x}", x = copy.group_name)),
+                _ => HttpResponse::InternalServerError().json("Something went wrong!")
+            }
+        }
+        _ => HttpResponse::InternalServerError().json("Unable to connect!")
     }
 }
 
