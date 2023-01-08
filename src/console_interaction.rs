@@ -39,8 +39,10 @@ pub fn print_help() {
         CommandsRow{ id: 5, command_name: "assign".to_string(), parameter_1: "<group name>".to_string(), parameter_2: "<admin name>".to_string(), description: "Superuser can appoint another user as superuser".to_string()},
         CommandsRow{ id: 6, command_name: "deleteAdmin".to_string(), parameter_1: "<group name>".to_string(), parameter_2: "      -     ".to_string(), description: "Superuser can leave the group if amount of superusers is one or more".to_string()},
         CommandsRow{ id: 7, command_name: "generateSantas".to_string(), parameter_1: "<group name>".to_string(), parameter_2: "      -     ".to_string(), description: "Superuser can generate Santas for each person in the group".to_string()},
-        CommandsRow{ id: 8, command_name: "clear".to_string(), parameter_1: "     -     ".to_string(), parameter_2: "      -     ".to_string(), description: "Clear the terminal".to_string()},
-        CommandsRow{ id: 9, command_name: "help".to_string(), parameter_1: "     -     ".to_string(), parameter_2: "      -     ".to_string(), description: "Print table with commands".to_string()},
+        CommandsRow{ id: 8, command_name: "getUsers".to_string(), parameter_1: "     -     ".to_string(), parameter_2: "      -     ".to_string(), description: "Superuser can generate Santas for each person in the group".to_string()},
+        CommandsRow{ id: 9, command_name: "getGroups".to_string(), parameter_1: "     -     ".to_string(), parameter_2: "      -     ".to_string(), description: "Superuser can generate Santas for each person in the group".to_string()},
+        CommandsRow{ id: 10, command_name: "clear".to_string(), parameter_1: "     -     ".to_string(), parameter_2: "      -     ".to_string(), description: "Clear the terminal".to_string()},
+        CommandsRow{ id: 11, command_name: "help".to_string(), parameter_1: "     -     ".to_string(), parameter_2: "      -     ".to_string(), description: "Print table with commands".to_string()},
     ];
     let table = CommandsTable::from_vec(&rows);
     println!("{}", table.to_string());
