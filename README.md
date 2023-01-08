@@ -99,7 +99,7 @@
 
 ### Contributor's list  ###
 <table>
-    <tr><td colspan="7" align="center"><b>3530904/10004<b></td></tr>
+    <tr><td colspan="8" align="center"><b>3530904/10004<b></td></tr>
   <tr>
     <td align="center"><a href="https://github.com/Kirill06344"><img src="https://avatars.githubusercontent.com/u/67016214?v=4" width="100px" alt=""/><br /><sub><b>Bazhenov Kiril </b></sub></a><br />
     <td align="center"><a href="https://github.com/llav3ji2019"><img src="https://avatars.githubusercontent.com/u/56979109?v=4" width="100px" alt=""/><br /><sub><b>Emelyanov Pavel</b></sub></a><br />
