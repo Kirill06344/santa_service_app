@@ -2,17 +2,12 @@
 
 <h1 align="center"> Santa Service App</h1>
 
-## Contents
-1. <a href="#Stack">Used technology stack</a>
-2. <a href="#Tasks">Tasks of projectk</a>
-3. <a href="#Contributors">Contributor's list</a>
-
-### <a name="Stack"></a>Used technology stack
+### Used technology stack
 * Web Server with using Rust (Actix, Actix-web, Diesel)
 * Data base (Postgres)
 * Console Application (Tokio)
 
-### <a name="Tasks"></a>Tasks of project
+### Tasks of project
 <table>
 <tr>
     <td align="center">Id</td>
@@ -101,10 +96,8 @@
     <td style="color:#00FF00;" width="100px" align="center"><img src="images/Selected.svg" width="40px" alt=""/><br /></td>
 </tr>
 </table>
-  <p><a name="top"></a></p>
-  <p>...</p>
 
-### <a name="Contributors">Contributor's list </a> ###
+### Contributor's list  ###
 <table>
     <tr><td colspan="7" align="center"><b>3530904/10004<b></td></tr>
   <tr>
@@ -119,4 +112,4 @@
   </tr>
 </table>
 
-  <p><a href="#top">Наверх</a></p>
+  
