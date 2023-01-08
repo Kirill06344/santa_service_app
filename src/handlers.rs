@@ -21,7 +21,7 @@ use crate::schema::groups::dsl::*;
 use crate::schema::user_group::dsl::*;
 use crate::secondary_functions::{find_group_id_by_name, get_group_status,
                                  is_admin_in_group, is_admin_in_group_other_curr_user,
-                                 lottery, check_admin_access};
+                                 lottery, check_admin_access, check_group_closed};
 
 
 impl Handler<GetIdFromLogin> for DbActor {
@@ -110,15 +110,11 @@ impl Handler<EnterGroup> for DbActor{
     fn handle(&mut self, msg: EnterGroup, ctx: &mut Self::Context) -> Self::Result {
         let mut conn = self.0.get().expect("Database is unable");
 
-        let gr_id = find_group_id_by_name(& mut conn, msg.name);
-        if gr_id == -1 {
-            return Err(Errors::CantFindGroupByName);
+        let gr_id = check_group_closed(& mut conn, msg.name);
+        if gr_id.is_err() {
+            return Err(gr_id.err().unwrap());
         }
-
-        match get_group_status(& mut conn, gr_id) {
-            Ok(is_closed) => {if is_closed {return Err(Errors::GroupClosed);}}
-            Err(error) => {return Err(error);}
-        }
+        let gr_id = gr_id.unwrap();
 
         let already_in_group = user_group.filter(user_id.eq(msg.user_id)).filter(group_id.eq(gr_id)).execute(& mut conn);
 
@@ -195,19 +191,14 @@ impl Handler<LeaveGroup> for DbActor {
         let mut conn = self.0.get().expect("Database is unable");
 
 
-        let gr_id = find_group_id_by_name(& mut conn, msg.group_name.clone());
-        if gr_id == -1 {
-            return Err(Errors::CantFindGroupByName);
+        let gr_id = check_group_closed(& mut conn, msg.group_name.clone());
+        if gr_id.is_err() {
+            return Err(gr_id.err().unwrap());
         }
-        match get_group_status(& mut conn, gr_id) {
-            Ok(is_closed) => {if is_closed {return Err(Errors::GroupClosed);}}
-            Err(error) => {return Err(error);}
-        }
-
+        let gr_id = gr_id.unwrap();
 
         let is_user_admin = is_admin_in_group(& mut conn, msg.user_id, gr_id);
         let is_admin_there = is_admin_in_group_other_curr_user(&mut conn, msg.user_id, gr_id);
-
 
         if !is_user_admin || (is_user_admin && is_admin_there) {
             let deleted_rows = diesel::delete(
@@ -233,14 +224,11 @@ impl Handler<DeleteGroup> for DbActor {
     fn handle(&mut self, msg: DeleteGroup, ctx: &mut Self::Context) -> Self::Result {
         let mut conn = self.0.get().expect("Database is unable");
 
-        let gr_id = check_admin_access(& mut conn, msg.user_id, msg.group_name.clone());
-
-        let gr_id = if !gr_id.is_err() {gr_id.unwrap()} else {return Err(gr_id.err().unwrap());};
-
-        match get_group_status(& mut conn, gr_id) {
-            Ok(is_closed) => {if is_closed {return Err(Errors::GroupClosed);}}
-            Err(error) => {return Err(error);}
+        let gr_id = check_group_closed(& mut conn, msg.group_name.clone());
+        if gr_id.is_err() {
+            return Err(gr_id.err().unwrap());
         }
+        let gr_id = gr_id.unwrap();
 
         let delete_users_from_group = diesel::delete(user_group
             .filter(group_id.eq(gr_id)))
@@ -265,14 +253,11 @@ impl Handler<StartSanta> for DbActor {
     fn handle(&mut self, msg: StartSanta, ctx: &mut Self::Context) -> Self::Result {
         let mut conn = self.0.get().expect("Database is unable");
 
-        let gr_id = check_admin_access(& mut conn, msg.user_id, msg.group_name.clone());
-
-        let gr_id = if !gr_id.is_err() {gr_id.unwrap()} else {return Err(gr_id.err().unwrap());};
-
-        match get_group_status(& mut conn, gr_id) {
-            Ok(is_closed) => {if is_closed {return Err(Errors::GroupClosed);}}
-            Err(error) => {return Err(error);}
+        let gr_id = check_group_closed(& mut conn, msg.group_name);
+        if gr_id.is_err() {
+            return Err(gr_id.err().unwrap());
         }
+        let gr_id = gr_id.unwrap();
 
         let user_storage: Vec<UserToGroup>;
         match user_group.filter(group_id.eq(gr_id)).get_results(& mut conn) {
