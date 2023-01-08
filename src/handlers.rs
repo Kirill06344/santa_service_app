@@ -230,6 +230,10 @@ impl Handler<DeleteGroup> for DbActor {
         }
         let gr_id = gr_id.unwrap();
 
+        if !is_admin_in_group(&mut conn, msg.user_id, gr_id) {
+            return Err(Errors::AccessDenied);
+        }
+
         let delete_users_from_group = diesel::delete(user_group
             .filter(group_id.eq(gr_id)))
             .execute(& mut conn);
@@ -258,6 +262,10 @@ impl Handler<StartSanta> for DbActor {
             return Err(gr_id.err().unwrap());
         }
         let gr_id = gr_id.unwrap();
+
+        if !is_admin_in_group(&mut conn, msg.user_id, gr_id) {
+            return Err(Errors::AccessDenied);
+        }
 
         let user_storage: Vec<UserToGroup>;
         match user_group.filter(group_id.eq(gr_id)).get_results(& mut conn) {
