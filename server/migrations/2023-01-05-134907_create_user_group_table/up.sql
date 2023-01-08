@@ -1,0 +1,6 @@
+CREATE TABLE user_group(
+    id SERIAL PRIMARY KEY ,
+    user_id INTEGER NOT NULL,
+    group_id INTEGER NOT NULL,
+    is_admin BOOLEAN NOT NULL DEFAULT FALSE
+)
