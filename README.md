@@ -101,6 +101,8 @@
     <td style="color:#00FF00;" width="100px" align="center"><img src="images/Selected.svg" width="40px" alt=""/><br /></td>
 </tr>
 </table>
+  <p><a name="top"></a></p>
+  <p>...</p>
 
 ### <a name="Contributors">Contributor's list </a> ###
 <table>
@@ -116,3 +118,5 @@
 
   </tr>
 </table>
+
+  <p><a href="#top">Наверх</a></p>
