@@ -19,7 +19,8 @@ mod secondary_functions;
 
 
 use lib::{get_pool, AppState, DbActor};
-use services::{get_users, add_group, get_groups, join_group, make_admin, get_id_from_login, resign, leave_group, delete_group, start_santa};
+use services::{get_users, add_group, get_groups, join_group, make_admin,
+               get_id_from_login, resign, leave_group, delete_group, start_santa, get_present};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -44,6 +45,7 @@ async fn main() -> std::io::Result<()> {
             .service(leave_group)
             .service(delete_group)
             .service(start_santa)
+            .service(get_present)
     })
     .bind(("127.0.0.1", 8080))?
     .run()

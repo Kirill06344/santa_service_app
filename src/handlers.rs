@@ -1,14 +1,14 @@
-use std::collections::{HashMap, VecDeque};
+use std::collections::{BTreeSet, HashMap, VecDeque};
 use std::fmt;
 use std::fmt::{format, Formatter};
 use std::ops::Add;
 use crate::lib::DbActor;
-use crate::messages::{GetUsers, GetGroups, AddGroup, EnterGroup, MakeAdmin, GetIdFromLogin, Resign, LeaveGroup, DeleteGroup, StartSanta};
+use crate::messages::{GetUsers, GetGroups, AddGroup, EnterGroup, MakeAdmin, GetIdFromLogin, Resign, LeaveGroup, DeleteGroup, StartSanta, GetYourPresent};
 use actix::Handler;
 use diesel::{self, prelude::*};
 use diesel::r2d2::{ConnectionManager, PooledConnection};
 use crate::errors::Errors;
-use crate::models::{User, Group, UserToGroup};
+use crate::models::{User, Group, UserToGroup, Santa};
 use crate::insertables::{InsertableUserGroup, InsertableSanta};
 use crate::secondary_functions;
 
@@ -291,6 +291,34 @@ impl Handler<StartSanta> for DbActor {
             Ok("You started Secret Santa!!!".to_string())
         } else {
             Err(Errors::DbConnectionError)
+        }
+    }
+}
+
+impl Handler<GetYourPresent> for DbActor {
+    type Result = Result<String, Errors>;
+
+    fn handle(&mut self, msg: GetYourPresent, ctx: &mut Self::Context) -> Self::Result {
+        let mut conn = self.0.get().expect("Database is unable");
+
+        let gr_id = find_group_id_by_name(& mut conn, msg.group_name.clone());
+        if gr_id == -1 {
+            return Err(Errors::CantFindGroupByName);
+        }
+
+        use crate::schema::santa::dsl::*;
+        let res : QueryResult<Santa> = santa.filter(user_id.eq(msg.user_id)).filter(group_id.eq(gr_id)).get_result::<Santa>(& mut conn);
+
+        return if !res.is_err() {
+            use crate::schema::users::dsl::id;
+            let user : QueryResult<User> = users.filter(id.eq(res.unwrap().present_id)).get_result::<User>(& mut conn);
+            if !user.is_err() {
+                Ok(format!("You have to give a present for user {} in group {}", user.unwrap().login, msg.group_name))
+            } else {
+                Err(Errors::CantFindUserName)
+            }
+        } else {
+            Err(Errors::NotUpdated)
         }
     }
 }

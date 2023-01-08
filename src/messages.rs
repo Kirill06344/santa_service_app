@@ -71,3 +71,10 @@ pub struct StartSanta {
     pub group_name: String,
     pub user_id: i32
 }
+
+#[derive(Message, Deserialize)]
+#[rtype(result = "Result<String, Errors>")]
+pub struct GetYourPresent {
+    pub group_name: String,
+    pub user_id: i32
+}

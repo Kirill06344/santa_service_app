@@ -1,4 +1,4 @@
-use std::ops::DerefMut;
+use std::ops::{Add, DerefMut};
 use actix_web::{App, get, HttpResponse, HttpServer, post, Responder};
 use actix_web::web::{Json, Path, Data};
 
@@ -16,7 +16,8 @@ use crate::errors::Errors;
 
 use actix::Addr;
 use actix::fut::err;
-use crate::messages::StartSanta;
+use diesel::insertable::DefaultableColumnInsertValue::Default;
+use crate::messages::{GetYourPresent, StartSanta};
 
 
 #[post("/get_login_id")]
@@ -36,7 +37,7 @@ pub async fn get_id_from_login(state: Data<AppState>, data: Json<String>) -> imp
     }
 }
 
-#[get("/users")]
+#[get("/get_users")]
 pub async fn get_users(state: Data<AppState>) -> impl Responder {
     //Здесь получаем адрес нашего пула
     let db: Addr<DbActor> = state.as_ref().db.clone();
@@ -44,19 +45,23 @@ pub async fn get_users(state: Data<AppState>) -> impl Responder {
     //отправляем сообщение актеру, так как у нас 5 потоков, то сможем отправлять 5 сообщений одновременно
     match db.send(GetUsers).await {
         Ok(Ok(info)) => {
-            HttpResponse::Ok().json(info)
+            let res: Vec<String> = info.iter().map(|i| i.to_string()).collect();
+            HttpResponse::Ok().json(res)
         },
         Ok(Err(_)) => HttpResponse::BadRequest().json("No users found"),
         _ => HttpResponse::InternalServerError().json("Unable to retrieve users")
     }
 }
 
-#[get("/groups")]
+#[get("/get_groups")]
 pub async fn get_groups(state: Data<AppState>) -> impl Responder {
     let db: Addr<DbActor> = state.as_ref().db.clone();
 
     match db.send(GetGroups).await {
-        Ok(Ok(info)) => HttpResponse::Ok().json(info),
+        Ok(Ok(info)) => {
+            let res: Vec<String> = info.iter().map(|i| i.to_string()).collect();
+            HttpResponse::Ok().json(res)
+        },
         Ok(Err(_)) => HttpResponse::BadRequest().json("No groups found"),
         _ => HttpResponse::InternalServerError().json("Unable to retrieve groups")
     }
@@ -237,6 +242,32 @@ pub async fn start_santa(state: Data<AppState>, data: Json<MakeAdmin>) -> impl R
                 Errors::AccessDenied => HttpResponse::Forbidden().json("You are not an admin!"),
                 Errors::NotEnoughParticipants => HttpResponse::Conflict().json("Not enough participants in group, min value is 3"),
                 Errors::GroupClosed => HttpResponse::NotAcceptable().json("Group is closed. You can not start santa!"),
+                _ => HttpResponse::InternalServerError().json("Something went wrong!")
+            }
+        }
+        _ => HttpResponse::InternalServerError().json("Unable to connect!")
+    }
+}
+
+#[post("users/get_present")]
+pub async fn get_present(state: Data<AppState>, data: Json<MakeAdmin>) -> impl Responder {
+    let db: Addr<DbActor> = state.as_ref().db.clone();
+    let copy = data.group_name.clone();
+
+    let msg = GetYourPresent {
+        group_name: data.group_name.clone(),
+        user_id: data.user_id.clone()
+    };
+
+    match db.send(msg).await {
+        Ok(Ok(info)) => {
+            HttpResponse::Ok().json(info)
+        },
+        Ok(Err(error)) => {
+            match error {
+                Errors::CantFindGroupByName => HttpResponse::NotAcceptable().json(format!("Can't find group with this name {n}!", n = copy)),
+                Errors::CantFindUserName => HttpResponse::NotAcceptable().json("User with this id dosen't exist, it is strange"),
+                Errors::NotUpdated => HttpResponse::NotAcceptable().json("Check that you correctly wrote group_name or secret santa didn't start at your group!"),
                 _ => HttpResponse::InternalServerError().json("Something went wrong!")
             }
         }
