@@ -23,11 +23,11 @@ pub fn get_data(data: &mut String) -> Result<usize, &str> {
 }
 
 pub fn check_command(command: &str, length_of_command: &usize) -> bool {
-    *length_of_command == 1 
-        || *length_of_command > 3 
+        *length_of_command > 3 
         ||  (*length_of_command == 2 && command == "assign") 
         || (*length_of_command == 3 && command != "assign")
-        || (*length_of_command == 0 && (command != "clear" && command != "help"))
+        || (*length_of_command == 1 && (command != "clear" && command != "help"))
+        || (*length_of_command != 1 && (command == "clear" || command == "help"))
 }
 
 pub fn print_help() {
