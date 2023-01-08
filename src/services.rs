@@ -106,6 +106,7 @@ pub async fn join_group(state: Data<AppState>, data: Json<MakeAdmin>) -> impl Re
             match error {
                 Errors::CantFindGroupByName => HttpResponse::NotAcceptable().json("Can't find group with this name!"),
                 Errors::NotUpdated => HttpResponse::Conflict().json("You are already in group!"),
+                Errors::GroupClosed => HttpResponse::NotAcceptable().json("Group is closed. You can not join!"),
                 _ => HttpResponse::InternalServerError().json("Something went wrong!")
             }
         }
@@ -181,6 +182,8 @@ pub async fn leave_group(state: Data<AppState>, data: Json<MakeAdmin>) -> impl R
                 Errors::CantFindGroupByName => HttpResponse::NotAcceptable().json(format!("Can't find group with this name {n}!", n = copy)),
                 Errors::AloneAdmin => HttpResponse::Forbidden().json("You are alone admin! Don't leave your post!!!!"),
                 Errors::NotUpdated => HttpResponse::Conflict().json(format!("You didn't leave group {n}, because you were not in the group {n}",n = copy)),
+                Errors::GroupClosed => HttpResponse::NotAcceptable().json("Group is closed. You can not join!"),
+
                 _ => HttpResponse::InternalServerError().json("Something went wrong!")
             }
         }
@@ -206,6 +209,7 @@ pub async fn delete_group(state: Data<AppState>, data: Json<MakeAdmin>) -> impl 
             match error {
                 Errors::CantFindGroupByName => HttpResponse::NotAcceptable().json(format!("Can't find group with this name {n}!", n = copy)),
                 Errors::AccessDenied => HttpResponse::Forbidden().json("You are not an admin!"),
+                Errors::GroupClosed => HttpResponse::NotAcceptable().json("Group is closed. You can not join!"),
                 _ => HttpResponse::InternalServerError().json("Something went wrong!")
             }
         }
@@ -232,6 +236,7 @@ pub async fn start_santa(state: Data<AppState>, data: Json<MakeAdmin>) -> impl R
                 Errors::CantFindGroupByName => HttpResponse::NotAcceptable().json(format!("Can't find group with this name {n}!", n = copy)),
                 Errors::AccessDenied => HttpResponse::Forbidden().json("You are not an admin!"),
                 Errors::NotEnoughParticipants => HttpResponse::Conflict().json("Not enough participants in group, min value is 3"),
+                Errors::GroupClosed => HttpResponse::NotAcceptable().json("Group is closed. You can not join!"),
                 _ => HttpResponse::InternalServerError().json("Something went wrong!")
             }
         }
