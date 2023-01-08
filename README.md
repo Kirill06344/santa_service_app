@@ -5,7 +5,7 @@
 ## Contents
 1. [Used technology stack](#Stack)
 2. [Tasks of projectk](#Tasks)
-3. [Contributor's list](#Stack)
+3. [Contributor's list](#Contributors)
 
 ### <a id="Stack"></a>Used technology stack
 * Web Server with using Rust (Actix, Actix-web, Diesel)
@@ -101,6 +101,7 @@
     <td style="color:#00FF00;" width="100px" align="center"><img src="images/Selected.svg" width="40px" alt=""/><br /></td>
 </tr>
 </table>
+
 ### <a id="Contributors"></a>Contributor's list ###
 <table>
     <tr><td colspan="7" align="center"><b>3530904/10004<b></td></tr>
