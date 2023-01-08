@@ -108,8 +108,8 @@
     <td align="center"><a href="https://github.com/anutatesl"><img src="https://avatars.githubusercontent.com/u/121693400?v=4" width="100px" alt=""/><br /><sub><b>Teslenko Anna</b></sub></a><br />
     <td align="center"><a href="https://github.com/isAnastasia"><img src="https://avatars.githubusercontent.com/u/121755328?v=4" width="100px" alt=""/><br /><sub><b>Gorbunova Anastasia</b></sub></a><br />
     <td align="center"><a href="https://github.com/vano03voin"><img src="https://avatars.githubusercontent.com/u/90224456?v=4" width="100px" alt=""/><br /><sub><b>Kuznetsov Ivan</b></sub></a><br />
-
+    <td align="center"><a href="https://github.com/erdemist1"><img src="https://avatars.githubusercontent.com/u/122188009?v=4" width="100px" alt=""/><br /><sub><b>Istaev Erdem</b></sub></a><br />
   </tr>
 </table>
-Istaev Erdem
+
   
