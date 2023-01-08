@@ -182,7 +182,7 @@ pub async fn leave_group(state: Data<AppState>, data: Json<MakeAdmin>) -> impl R
                 Errors::CantFindGroupByName => HttpResponse::NotAcceptable().json(format!("Can't find group with this name {n}!", n = copy)),
                 Errors::AloneAdmin => HttpResponse::Forbidden().json("You are alone admin! Don't leave your post!!!!"),
                 Errors::NotUpdated => HttpResponse::Conflict().json(format!("You didn't leave group {n}, because you were not in the group {n}",n = copy)),
-                Errors::GroupClosed => HttpResponse::NotAcceptable().json("Group is closed. You can not join!"),
+                Errors::GroupClosed => HttpResponse::NotAcceptable().json("Group is closed. You can not leave group!"),
 
                 _ => HttpResponse::InternalServerError().json("Something went wrong!")
             }
@@ -209,7 +209,7 @@ pub async fn delete_group(state: Data<AppState>, data: Json<MakeAdmin>) -> impl 
             match error {
                 Errors::CantFindGroupByName => HttpResponse::NotAcceptable().json(format!("Can't find group with this name {n}!", n = copy)),
                 Errors::AccessDenied => HttpResponse::Forbidden().json("You are not an admin!"),
-                Errors::GroupClosed => HttpResponse::NotAcceptable().json("Group is closed. You can not join!"),
+                Errors::GroupClosed => HttpResponse::NotAcceptable().json("Group is closed. You can not delete group!"),
                 _ => HttpResponse::InternalServerError().json("Something went wrong!")
             }
         }
@@ -236,7 +236,7 @@ pub async fn start_santa(state: Data<AppState>, data: Json<MakeAdmin>) -> impl R
                 Errors::CantFindGroupByName => HttpResponse::NotAcceptable().json(format!("Can't find group with this name {n}!", n = copy)),
                 Errors::AccessDenied => HttpResponse::Forbidden().json("You are not an admin!"),
                 Errors::NotEnoughParticipants => HttpResponse::Conflict().json("Not enough participants in group, min value is 3"),
-                Errors::GroupClosed => HttpResponse::NotAcceptable().json("Group is closed. You can not join!"),
+                Errors::GroupClosed => HttpResponse::NotAcceptable().json("Group is closed. You can not start santa!"),
                 _ => HttpResponse::InternalServerError().json("Something went wrong!")
             }
         }
