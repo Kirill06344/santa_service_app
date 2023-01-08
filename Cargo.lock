@@ -1081,6 +1081,7 @@ dependencies = [
  "chrono",
  "diesel",
  "dotenvy",
+ "rand",
  "serde",
  "serde_json",
 ]

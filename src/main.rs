@@ -10,11 +10,12 @@ use dotenvy::dotenv;
 mod lib;
 mod services;
 mod messages;
-mod actors;
 mod models;
 mod schema;
 mod insertables;
 mod errors;
+mod handlers;
+mod secondary_functions;
 
 
 use lib::{get_pool, AppState, DbActor};

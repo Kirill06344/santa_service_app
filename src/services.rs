@@ -31,7 +31,7 @@ pub async fn get_id_from_login(state: Data<AppState>, data: Json<String>) -> imp
         Ok(Ok(info)) =>{
             HttpResponse::Ok().json(info)
         },
-        Ok(Err(Errors)) => HttpResponse::InternalServerError().json("Error in db!"),
+        Ok(Err(_)) => HttpResponse::InternalServerError().json("Error in db!"),
         _ => HttpResponse::InternalServerError().json("Unable to retrieve users")
     }
 }
@@ -99,7 +99,7 @@ pub async fn join_group(state: Data<AppState>, data: Json<MakeAdmin>) -> impl Re
     };
 
     match db.send(msg).await {
-        Ok(Ok(info)) => {
+        Ok(Ok(_)) => {
             HttpResponse::Ok().json(format!("You succesfully join group with name {name}", name = data.group_name))
         },
         Ok(Err(error)) => {
@@ -120,7 +120,7 @@ pub async fn make_admin(state: Data<AppState>, data: Json<MakeAdmin>) -> impl Re
     let copy = data.0.clone();
 
     match db.send(data.0).await {
-        Ok(Ok(info)) => {
+        Ok(Ok(_)) => {
             HttpResponse::Ok().json(format!("User {x} is now admin in group {y}", x = copy.admin_name, y = copy.admin_name))
         },
         Ok(Err(error)) => {
@@ -147,7 +147,7 @@ pub async fn resign(state: Data<AppState>, data: Json<MakeAdmin>) -> impl Respon
     };
 
     match db.send(msg).await {
-        Ok(Ok(info)) => {
+        Ok(Ok(_)) => {
             HttpResponse::Ok().json(format!("Now you are not an admin in group {x}", x = copy.group_name))
         },
         Ok(Err(error)) => {

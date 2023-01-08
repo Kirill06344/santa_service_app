@@ -10,6 +10,7 @@ use diesel::r2d2::{ConnectionManager, PooledConnection};
 use crate::errors::Errors;
 use crate::models::{User, Group, UserToGroup};
 use crate::insertables::{InsertableUserGroup, InsertableSanta};
+use crate::secondary_functions;
 
 extern crate rand;
 use rand::{thread_rng, Rng};
@@ -18,6 +19,9 @@ use rand::seq::SliceRandom;
 use crate::schema::users::dsl::*;
 use crate::schema::groups::dsl::*;
 use crate::schema::user_group::dsl::*;
+use crate::secondary_functions::{find_group_id_by_name, get_group_status,
+                                 is_admin_in_group, is_admin_in_group_other_curr_user,
+                                 lottery, check_admin_access};
 
 
 impl Handler<GetIdFromLogin> for DbActor {
@@ -99,13 +103,6 @@ impl Handler<AddGroup> for DbActor {
     }
 }
 
-pub fn find_group_id_by_name(conn: & mut PooledConnection<ConnectionManager<PgConnection>>, group_name: String) -> i32 {
-    let founded_group = groups.filter(name.eq(group_name)).get_result::<Group>(conn);
-    if founded_group.is_err() {
-        return -1;
-    }
-    founded_group.unwrap().id
-}
 
 impl Handler<EnterGroup> for DbActor{
     type Result = Result<UserToGroup, Errors>;
@@ -116,6 +113,11 @@ impl Handler<EnterGroup> for DbActor{
         let gr_id = find_group_id_by_name(& mut conn, msg.name);
         if gr_id == -1 {
             return Err(Errors::CantFindGroupByName);
+        }
+
+        match get_group_status(& mut conn, gr_id) {
+            Ok(is_closed) => {if is_closed {return Err(Errors::GroupClosed);}}
+            Err(error) => {return Err(error);}
         }
 
         let already_in_group = user_group.filter(user_id.eq(msg.user_id)).filter(group_id.eq(gr_id)).execute(& mut conn);
@@ -135,38 +137,6 @@ impl Handler<EnterGroup> for DbActor{
     }
 }
 
-pub fn is_admin_in_group(conn: & mut PooledConnection<ConnectionManager<PgConnection>>, u_id: i32, g_id: i32) -> bool {
-    let res: QueryResult<usize> = user_group.filter(user_id.eq(u_id)).filter(group_id.eq(g_id)).filter(is_admin.eq(true)).execute(conn);
-    if res.is_err() || res.unwrap() == 0 {
-        return false;
-    }
-    return true;
-}
-
-pub fn is_admin_in_group_other_curr_user(conn: & mut PooledConnection<ConnectionManager<PgConnection>>, u_id: i32, g_id: i32) -> bool {
-    let res: QueryResult<usize> = user_group.filter(group_id.eq(g_id))
-        .filter(is_admin.eq(true))
-        .filter(user_id.ne(u_id))
-        .execute(conn);
-    if res.is_err() || res.unwrap() == 0 {
-        return false;
-    }
-    return true;
-}
-
-
-fn check_admin_access(conn: & mut PooledConnection<ConnectionManager<PgConnection>>, u_id: i32, group_name: String) -> Result<i32, Errors> {
-    let gr_id = find_group_id_by_name(conn, group_name);
-    if gr_id == -1 {
-        return Err(Errors::CantFindGroupByName);
-    }
-
-    if !is_admin_in_group(conn, u_id, gr_id) {
-        return Err(Errors::AccessDenied);
-    }
-
-    Ok(gr_id)
-}
 
 impl Handler<MakeAdmin> for DbActor {
     type Result = Result<UserToGroup, Errors>;
@@ -229,6 +199,11 @@ impl Handler<LeaveGroup> for DbActor {
         if gr_id == -1 {
             return Err(Errors::CantFindGroupByName);
         }
+        match get_group_status(& mut conn, gr_id) {
+            Ok(is_closed) => {if is_closed {return Err(Errors::GroupClosed);}}
+            Err(error) => {return Err(error);}
+        }
+
 
         let is_user_admin = is_admin_in_group(& mut conn, msg.user_id, gr_id);
         let is_admin_there = is_admin_in_group_other_curr_user(&mut conn, msg.user_id, gr_id);
@@ -262,6 +237,11 @@ impl Handler<DeleteGroup> for DbActor {
 
         let gr_id = if !gr_id.is_err() {gr_id.unwrap()} else {return Err(gr_id.err().unwrap());};
 
+        match get_group_status(& mut conn, gr_id) {
+            Ok(is_closed) => {if is_closed {return Err(Errors::GroupClosed);}}
+            Err(error) => {return Err(error);}
+        }
+
         let delete_users_from_group = diesel::delete(user_group
             .filter(group_id.eq(gr_id)))
             .execute(& mut conn);
@@ -277,36 +257,7 @@ impl Handler<DeleteGroup> for DbActor {
     }
 }
 
-pub fn lottery(user_storage: &mut Vec<i32>) -> HashMap<i32, i32> {
-    let mut rng = rand::thread_rng();
-    let mut user_storage_clone =  user_storage.clone();
-    user_storage_clone.shuffle(& mut rng);
-    let mut user_storage_copy = VecDeque::from(user_storage_clone.to_vec());
-    user_storage.shuffle(&mut rng);
 
-    let mut map_tuples: HashMap<i32, i32> = HashMap::new();
-
-
-
-    for i in 0..user_storage.len() - 1 {
-        if user_storage[i] == user_storage_copy[0] {
-          user_storage_copy.swap(0, user_storage_copy.len() - 1);
-        }
-        map_tuples.insert(user_storage[i].clone(), user_storage_copy.pop_front().unwrap());
-    }
-
-    let a = user_storage.last().unwrap();
-    let b = user_storage_copy.back().unwrap();
-
-    if a == b  {
-        let tmp = map_tuples.get(&user_storage[0]).unwrap().clone();
-        map_tuples.insert(user_storage[0], b.clone());
-        map_tuples.insert(a.clone(), tmp.clone());
-    }
-
-    map_tuples
-
-}
 
 impl Handler<StartSanta> for DbActor {
     type Result = Result<String, Errors>;
@@ -317,6 +268,11 @@ impl Handler<StartSanta> for DbActor {
         let gr_id = check_admin_access(& mut conn, msg.user_id, msg.group_name.clone());
 
         let gr_id = if !gr_id.is_err() {gr_id.unwrap()} else {return Err(gr_id.err().unwrap());};
+
+        match get_group_status(& mut conn, gr_id) {
+            Ok(is_closed) => {if is_closed {return Err(Errors::GroupClosed);}}
+            Err(error) => {return Err(error);}
+        }
 
         let user_storage: Vec<UserToGroup>;
         match user_group.filter(group_id.eq(gr_id)).get_results(& mut conn) {
@@ -344,7 +300,6 @@ impl Handler<StartSanta> for DbActor {
                 return Err(Errors::DbConnectionError);
             }
         }
-
 
         use crate::schema::groups::dsl::id;
         if !diesel::update(groups.filter(id.eq(gr_id))).set(closed.eq(true)).execute(& mut conn).is_err() {
