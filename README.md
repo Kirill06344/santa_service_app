@@ -102,7 +102,7 @@
     <td style="color:#00FF00;" width="100px" align="center"><img src="images/Selected.svg" width="40px" alt=""/><br /></td>
 </tr>
 </table>
-### <a id="Contributors"></a>Contributor's list
+### <a id="Contributors"></a>Contributor's list ###
 <table>
     <tr><td colspan="7" align="center"><b>3530904/10004<b></td></tr>
   <tr>
