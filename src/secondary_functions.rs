@@ -88,3 +88,16 @@ pub fn lottery(user_storage: &mut Vec<i32>) -> HashMap<i32, i32> {
 
     map_tuples
 }
+
+pub fn check_group_closed(conn: & mut PooledConnection<ConnectionManager<PgConnection>>, group_name: String) -> Result<i32, Errors> {
+    let gr_id = find_group_id_by_name(conn, group_name);
+    if gr_id == -1 {
+        return Err(Errors::CantFindGroupByName);
+    }
+    match get_group_status(conn, gr_id) {
+        Ok(is_closed) => {if is_closed {return Err(Errors::GroupClosed);}}
+        Err(error) => {return Err(error);}
+    }
+
+    Ok(gr_id)
+}
