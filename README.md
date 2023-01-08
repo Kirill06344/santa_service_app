@@ -1,17 +1,18 @@
 
 
 <h1 align="center"> Santa Service App</h1>
+
 ## Contents
 1. [Used technology stack](#Stack)
 2. [Tasks of projectk](#Tasks)
 3. [Contributor's list](#Stack)
 
-### <a id="Stack"></a>Used technology stack ###
+### <a id="Stack"></a>Used technology stack
 * Web Server with using Rust (Actix, Actix-web, Diesel)
 * Data base (Postgres)
 * Console Application (Tokio)
 
-### <a id="Tasks"></a>Tasks of project ###
+### <a id="Tasks"></a>Tasks of project
 <table>
 <tr>
     <td align="center">Id</td>
