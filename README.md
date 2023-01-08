@@ -6,8 +6,6 @@
 2. [Tasks of projectk](#Tasks)
 3. [Contributor's list](#Stack)
 
-### <a id="Contributors"></a> ###
-### <a id="Tasks"></a> ###
 ### <a id="Stack"></a>Used technology stack ###
 * Web Server with using Rust (Actix, Actix-web, Diesel)
 * Data base (Postgres)
