@@ -18,7 +18,7 @@
 <tr>
     <td align="center">Id</td>
     <td align="center">Task</td>
-    <td align="center">Is completed</td>
+    <td align="center">Completed</td>
 </tr>
 <tr>
     <td align="center">1</td>
