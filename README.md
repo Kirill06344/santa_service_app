@@ -1,7 +1,7 @@
 
 
 <h1 align="center"> Santa Service App</h1>
-## Contents ##
+## Contents
 1. [Used technology stack](#Stack)
 2. [Tasks of projectk](#Tasks)
 3. [Contributor's list](#Stack)
