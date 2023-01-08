@@ -7,12 +7,12 @@
 2. <a href="#Tasks">Tasks of projectk</a>
 3. <a href="#Contributors">Contributor's list</a>
 
-### <a id="Stack"></a>Used technology stack
+### <a name="Stack"></a>Used technology stack
 * Web Server with using Rust (Actix, Actix-web, Diesel)
 * Data base (Postgres)
 * Console Application (Tokio)
 
-### <a id="Tasks"></a>Tasks of project
+### <a name="Tasks"></a>Tasks of project
 <table>
 <tr>
     <td align="center">Id</td>
@@ -102,7 +102,7 @@
 </tr>
 </table>
 
-### <a id="Contributors">Contributor's list </a> ###
+### <a name="Contributors">Contributor's list </a> ###
 <table>
     <tr><td colspan="7" align="center"><b>3530904/10004<b></td></tr>
   <tr>
