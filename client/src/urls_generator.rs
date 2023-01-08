@@ -11,6 +11,6 @@ pub fn get_urls_container() -> HashMap<String, String> {
     urls.insert("generateSantas".to_string(), "http://127.0.0.1:8080/users/start_santa".to_string());
     urls.insert("getUsers".to_string(), "http://127.0.0.1:8080/get_users".to_string());
     urls.insert("getGroups".to_string(), "http://127.0.0.1:8080/get_groups".to_string());
-    urls.insert("getPerson".to_string(), "http://127.0.0.1:8080/get_present".to_string());
+    urls.insert("getPerson".to_string(), "http://127.0.0.1:8080/users/get_present".to_string());
     urls
 }
