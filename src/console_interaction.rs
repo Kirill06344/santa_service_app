@@ -27,7 +27,7 @@ pub fn check_command(command: &str, length_of_command: &usize) -> bool {
         ||  (*length_of_command == 2 && command == "assign") 
         || (*length_of_command == 3 && command != "assign")
         || (*length_of_command == 1 && command != "clear" && command != "help" && command != "getUsers" && command != "getGroups")
-        || (*length_of_command != 1 && (command == "clear" || command == "help" || command != "getUsers" || command != "getGroups"))
+        || (*length_of_command != 1 && (command == "clear" || command == "help" || command == "getUsers" || command == "getGroups"))
 }
 
 pub fn print_help() {
