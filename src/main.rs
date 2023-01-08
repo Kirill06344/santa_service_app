@@ -57,11 +57,16 @@ async fn main() -> Result<(), reqwest::Error> {
             if command == "assign" {
                 admin_name = command_args[2].to_string();
             }
+            let mut group_name: String = "default".to_string();
+            if command == "getUsers" || command == "getUsers" {
+                group_name = command_args[1].to_string();
+            }
             let current_command_data: User = User {
-                group_name: (command_args[1].to_string()),
+                group_name,
                 user_id: (current_id),
                 admin_name
             };
+
             match urls_container.get(command) {
                 Some(url) => {
                     let needed_url  = url.clone();
