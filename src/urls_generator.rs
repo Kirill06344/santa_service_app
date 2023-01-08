@@ -9,5 +9,7 @@ pub fn get_urls_container() -> HashMap<String, String> {
     urls.insert("assign".to_string(), "http://127.0.0.1:8080/users/make_admin".to_string());
     urls.insert("deleteAdmin".to_string(), "http://127.0.0.1:8080/users/resign".to_string());
     urls.insert("generateSantas".to_string(), "http://127.0.0.1:8080/users/start_santa".to_string());
+    urls.insert("getUsers".to_string(), "http://127.0.0.1:8080/get_users".to_string());
+    urls.insert("getGroups".to_string(), "http://127.0.0.1:8080/get_groups".to_string());
     urls
 }

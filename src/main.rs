@@ -5,7 +5,7 @@ use urls_generator::get_urls_container;
 use std::collections::HashMap;
 use reqwest::StatusCode;
 pub mod server_interaction;
-use server_interaction::{get_command_result, User};
+use server_interaction::{get_command_result, User, Method};
 use colored::Colorize;
 
 #[tokio::main]
@@ -50,16 +50,14 @@ async fn main() -> Result<(), reqwest::Error> {
                 println!("{}", format!("Wrong format of command!").purple().italic());
                 continue;
             }
-
             if do_extra_console_command(command) {
                 continue;
             }
-            
             let mut admin_name: String = user_login.to_string();
             if command == "assign" {
                 admin_name = command_args[2].to_string();
             }
-            let current_command: User = User {
+            let current_command_data: User = User {
                 group_name: (command_args[1].to_string()),
                 user_id: (current_id),
                 admin_name
@@ -67,8 +65,13 @@ async fn main() -> Result<(), reqwest::Error> {
             match urls_container.get(command) {
                 Some(url) => {
                     let needed_url  = url.clone();
-                    tokio::task::spawn_blocking(|| {
-                        println!("{}", format!("{}", get_command_result(needed_url, current_command).unwrap()).purple().italic());
+                    let cmd = command.clone().to_string();
+                    tokio::task::spawn_blocking(move || {
+                        let mut method: Method = Method::POST;
+                        if cmd == "getUsers" || cmd == "getGroups" {
+                            method = Method::GET;
+                        }
+                        println!("{}", format!("{}", get_command_result(needed_url, current_command_data, method).unwrap()).purple().italic());
                     }).await.expect("Task panicked")
                 },
                 None => {
