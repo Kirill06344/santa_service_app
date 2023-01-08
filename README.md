@@ -3,9 +3,9 @@
 <h1 align="center"> Santa Service App</h1>
 
 ## Contents
-1. [Used technology stack](#Stack)
-2. [Tasks of projectk](#Tasks)
-3. [Contributor's list](#Contributors)
+1. <a href="#Stack">Used technology stack</a>
+2. <a href="#Tasks">Tasks of projectk</a>
+3. <a href="#Contributors">Contributor's list</a>
 
 ### <a id="Stack"></a>Used technology stack
 * Web Server with using Rust (Actix, Actix-web, Diesel)
@@ -108,11 +108,11 @@
   <tr>
     <td align="center"><a href="https://github.com/Kirill06344"><img src="https://avatars.githubusercontent.com/u/67016214?v=4" width="100px" alt=""/><br /><sub><b>Bazhenov Kiril </b></sub></a><br />
     <td align="center"><a href="https://github.com/llav3ji2019"><img src="https://avatars.githubusercontent.com/u/56979109?v=4" width="100px" alt=""/><br /><sub><b>Emelyanov Pavel</b></sub></a><br />
-    <td align="center"><a href="https://github.com/Koteron"><img src="https://avatars.githubusercontent.com/u/121894826?v=4" width="100px;" alt=""/><br /><sub><b>Nefedev Viktor</b></sub></a><br />
-    <td align="center"><a href="https://github.com/sonix14"><img src="https://avatars.githubusercontent.com/u/117933964?v=4" width="100px;" alt=""/><br /><sub><b>Roletskaya Sofia</b></sub></a><br />
-    <td align="center"><a href="https://github.com/anutatesl"><img src="https://avatars.githubusercontent.com/u/121693400?v=4" width="100px;" alt=""/><br /><sub><b>Teslenko Anna</b></sub></a><br />
-    <td align="center"><a href="https://github.com/isAnastasia"><img src="https://avatars.githubusercontent.com/u/121755328?v=4" width="100px;" alt=""/><br /><sub><b>Gorbunova Anastasia</b></sub></a><br />
-    <td align="center"><a href="https://github.com/vano03voin"><img src="https://avatars.githubusercontent.com/u/90224456?v=4" width="100px;" alt=""/><br /><sub><b>Kuznetsov Ivan</b></sub></a><br />
+    <td align="center"><a href="https://github.com/Koteron"><img src="https://avatars.githubusercontent.com/u/121894826?v=4" width="100px" alt=""/><br /><sub><b>Nefedev Viktor</b></sub></a><br/>
+    <td align="center"><a href="https://github.com/sonix14"><img src="https://avatars.githubusercontent.com/u/117933964?v=4" width="100px" alt=""/><br /><sub><b>Roletskaya Sofia</b></sub></a><br />
+    <td align="center"><a href="https://github.com/anutatesl"><img src="https://avatars.githubusercontent.com/u/121693400?v=4" width="100px" alt=""/><br /><sub><b>Teslenko Anna</b></sub></a><br />
+    <td align="center"><a href="https://github.com/isAnastasia"><img src="https://avatars.githubusercontent.com/u/121755328?v=4" width="100px" alt=""/><br /><sub><b>Gorbunova Anastasia</b></sub></a><br />
+    <td align="center"><a href="https://github.com/vano03voin"><img src="https://avatars.githubusercontent.com/u/90224456?v=4" width="100px" alt=""/><br /><sub><b>Kuznetsov Ivan</b></sub></a><br />
 
   </tr>
 </table>
